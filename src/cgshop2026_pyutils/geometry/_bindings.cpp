@@ -135,6 +135,7 @@ bool is_triangulation(const std::vector<Point> &points,
                initial_vertex_count, arrangement.number_of_vertices());
 
   // Check that no new vertices were created by intersections
+  std::vector<std::tuple<int, int>> edges_in_arrangement;
   if (arrangement.number_of_vertices() != initial_vertex_count) {
     if (verbose)
       fmt::print(
@@ -205,6 +206,40 @@ bool is_triangulation(const std::vector<Point> &points,
       if (verbose)
         fmt::print("ERROR: Face with {} edges found (expected 3)\n",
                    edge_count);
+      return false;
+    }
+
+    // Collect the vertices of the face
+    std::vector<int> vertex_indices;
+    do {
+      Point p = e->source()->point();
+      auto it = std::find(points.begin(), points.end(), p);
+      if (it != points.end()) {
+        vertex_indices.push_back(std::distance(points.begin(), it));
+      } else {
+        if (verbose)
+          fmt::print("ERROR: Face vertex {} not found in original points list.\n",
+                     point_to_string(p));
+        return false;
+      }
+      e = e->next();
+    } while (e != it->outer_ccb());
+
+    edges_in_arrangement.emplace_back(vertex_indices[0], vertex_indices[1]);
+    edges_in_arrangement.emplace_back(vertex_indices[1], vertex_indices[2]);
+    edges_in_arrangement.emplace_back(vertex_indices[2], vertex_indices[0]);
+  }
+
+  // check that all edge also appear in the arrangement
+  for(const auto &edge : edges) {
+    if (std::find(edges_in_arrangement.begin(), edges_in_arrangement.end(),
+                  edge) == edges_in_arrangement.end() &&
+        std::find(edges_in_arrangement.begin(), edges_in_arrangement.end(),
+                  std::make_tuple(std::get<1>(edge), std::get<0>(edge))) ==
+            edges_in_arrangement.end()) {
+      if (verbose)
+        fmt::print("ERROR: Edge ({}, {}) from faces not found in arrangement.\n",
+                   std::get<0>(edge), std::get<1>(edge));
       return false;
     }
   }
