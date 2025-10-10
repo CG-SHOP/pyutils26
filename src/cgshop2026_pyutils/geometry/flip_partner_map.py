@@ -1,5 +1,6 @@
 from collections import defaultdict
-from ._bindings import is_triangulation, compute_triangles, Point, do_cross, Segment
+from ._bindings import compute_triangles, do_cross, Segment
+
 
 class FlipPartnerMap:
     """
@@ -11,6 +12,7 @@ class FlipPartnerMap:
 
     All edges that belong to the two triangles incident to a flippable edge are considered conflicting flips, as flipping one of them would invalidate the other.
     """
+
     def __init__(self, points: list, edges: set[tuple[int, int]]):
         self.points = points
         self.edges = edges
@@ -22,7 +24,7 @@ class FlipPartnerMap:
         instance = FlipPartnerMap(points, edge_)
         instance.flip_map = instance._build_flip_map()
         return instance
-    
+
     def compute_triangles(self) -> list[tuple[int, int, int]]:
         """
         Computes the triangles formed by the current edges in the flip map.
@@ -47,10 +49,13 @@ class FlipPartnerMap:
                 # Find the vertices opposite to the edge in each triangle
                 opp1 = next(v for v in tri1 if v not in edge)
                 opp2 = next(v for v in tri2 if v not in edge)
-                if do_cross(Segment(self.points[edge[0]], self.points[edge[1]]), Segment(self.points[opp1], self.points[opp2])):
+                if do_cross(
+                    Segment(self.points[edge[0]], self.points[edge[1]]),
+                    Segment(self.points[opp1], self.points[opp2]),
+                ):
                     flip_map[edge] = (opp1, opp2)
         return flip_map
-    
+
     def is_flippable(self, edge: tuple[int, int]) -> bool:
         """
         Checks if the given edge is flippable.
@@ -59,7 +64,7 @@ class FlipPartnerMap:
         if u > v:
             u, v = v, u
         return (u, v) in self.flip_map
-    
+
     def conflicting_flips(self, edge: tuple[int, int]) -> set[tuple[int, int]]:
         """
         These are the edges that cannot be flipped if the given edge is flipped.
@@ -77,7 +82,7 @@ class FlipPartnerMap:
             if e in self.flip_map:
                 conflicting.add(e)
         return conflicting
-    
+
     def flip(self, edge: tuple[int, int]) -> tuple[int, int]:
         """
         Will flip the given edge and update the flip map accordingly.
@@ -98,19 +103,19 @@ class FlipPartnerMap:
         self.edges.remove((u, v))
         self.edges.add(new_edge)
         return new_edge
-    
+
     def deep_copy(self) -> "FlipPartnerMap":
         copy = FlipPartnerMap(self.points, self.edges.copy())
 
         copy.flip_map = self.flip_map.copy()
         return copy
-    
+
     def flippable_edges(self) -> list[tuple[int, int]]:
         """
         Returns a list of all currently flippable edges.
         """
         return list(self.flip_map.keys())
-    
+
     def get_flip_partner(self, edge: tuple[int, int]) -> tuple[int, int]:
         """
         Returns the flip partner of the given edge.

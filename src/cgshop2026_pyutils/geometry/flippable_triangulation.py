@@ -1,9 +1,5 @@
-from collections import defaultdict
-import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-from matplotlib.patches import Polygon
 from .flip_partner_map import FlipPartnerMap
-from ._bindings import is_triangulation, compute_triangles, Point, do_cross, Segment
+from ._bindings import is_triangulation
 
 
 class FlippableTriangulation:
@@ -12,6 +8,7 @@ class FlippableTriangulation:
     It allows you to verify if a a solution is valid but can also be used as a component
     to build your optimization algorithm.
     """
+
     def __init__(self, flip_map: FlipPartnerMap):
         # Do not validate or build here to allow cheap copies/forks.
         self._flip_map = flip_map
@@ -19,13 +16,17 @@ class FlippableTriangulation:
         self._conflicting_edges = set()
 
     @staticmethod
-    def from_points_edges(points: list, edges: list[tuple[int, int]]) -> "FlippableTriangulation":
+    def from_points_edges(
+        points: list, edges: list[tuple[int, int]]
+    ) -> "FlippableTriangulation":
         """
         Validates input and builds the internal flip map.
         Use this factory when creating an instance from raw points/edges.
         """
         if not is_triangulation(points, edges):
-            raise ValueError("The provided edges do not form a valid triangulation of the given points.")
+            raise ValueError(
+                "The provided edges do not form a valid triangulation of the given points."
+            )
         flip_map = FlipPartnerMap.build(points, edges)
         return FlippableTriangulation(flip_map)
 
@@ -72,5 +73,8 @@ class FlippableTriangulation:
         """
         Returns a list of all edges that can currently be flipped.
         """
-        return [e for e in self._flip_map.flippable_edges() if e not in self._conflicting_edges and e not in self._flip_queue]
-
+        return [
+            e
+            for e in self._flip_map.flippable_edges()
+            if e not in self._conflicting_edges and e not in self._flip_queue
+        ]
