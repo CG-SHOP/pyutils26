@@ -76,5 +76,5 @@ def create_instance_plot(inst: CGSHOP2026Instance, per_row: int = 2):
         _style_axes(ax, title=f"Triangulation #{t_idx}")
 
     fig.suptitle(f"CGSHOP2026 Instance: {inst.instance_uid}", fontsize=11, y=0.995)
-    fig.tight_layout(rect=[0, 0, 1, 0.99])
+    fig.tight_layout(rect=[0, 0, 1, 0.99]) # type: ignore
     return fig
