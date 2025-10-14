@@ -26,6 +26,11 @@ class CGSHOP2026Solution(BaseModel):
         description="For each triangulation in the instance, a sequence of parallel flip sets that lead to a common triangulation.",
     )
 
+    meta: dict = Field(
+        default_factory=dict,
+        description="Optional metadata about the solution, e.g., the name of the algorithm used to compute it.",
+    )
+
     @computed_field
     def objective_value(self) -> NonNegativeInt:
         """
