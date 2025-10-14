@@ -78,6 +78,18 @@ bool is_triangulation(const std::vector<Point> &points,
   // Create an arrangement to hold the edges
   Arrangement_2 arrangement;
   PointLocation point_location(arrangement);
+  
+  // Check that each point is unique
+  for (size_t i = 0; i < points.size(); ++i) {
+    for (size_t j = i + 1; j < points.size(); ++j) {
+      if (points[i] == points[j]) {
+        if (verbose)
+          fmt::print("ERROR: Duplicate points found at indices {} and {}: {}\n",
+                     i, j, point_to_string(points[i]));
+        return false; // Duplicate points found
+      }
+    }
+  }
 
   // Store initial number of vertices to check for new intersections
   size_t initial_vertex_count = points.size();

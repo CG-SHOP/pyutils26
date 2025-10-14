@@ -149,6 +149,16 @@ class TestIsTriangulation:
             # If it raises an exception, that's also acceptable behavior
             pass
 
+    def test_duplicate_points_wo_edges(self):
+        points = [
+            Point(0, 0),
+            Point(1, 0),
+            Point(0, 1),
+            Point(0, 0),
+        ]  # Last point is duplicate
+        edges = []
+        assert not is_triangulation(points, edges), ("Duplicate points should not create valid triangulation")
+
     def test_edge_indices_out_of_bounds(self):
         """Test that invalid edge indices are handled."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
