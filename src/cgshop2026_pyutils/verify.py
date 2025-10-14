@@ -1,7 +1,10 @@
 from .schemas import CGSHOP2026Instance, CGSHOP2026Solution
 from .geometry import FlippableTriangulation, Point
 
-def check_for_errors(instance: CGSHOP2026Instance, solution: CGSHOP2026Solution) -> list[str]:
+
+def check_for_errors(
+    instance: CGSHOP2026Instance, solution: CGSHOP2026Solution
+) -> list[str]:
     """
     Verifies the given solution against the provided instance and returns a list of error messages if any issues are found.
     """
@@ -20,5 +23,7 @@ def check_for_errors(instance: CGSHOP2026Instance, solution: CGSHOP2026Solution)
             tri.commit()
     for i in range(1, len(triangulations)):
         if triangulations[i] != triangulations[0]:
-            return [f"Final triangulations do not match. Triangulation 0 and {i} differ."]
+            return [
+                f"Final triangulations do not match. Triangulation 0 and {i} differ."
+            ]
     return []

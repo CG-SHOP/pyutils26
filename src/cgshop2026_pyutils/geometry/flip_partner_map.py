@@ -1,9 +1,11 @@
 from collections import defaultdict
 from ._bindings import compute_triangles, do_cross, Segment
 
+
 def normalize_edge(v: int, w: int) -> tuple[int, int]:
     """Returns a tuple representing the edge in a consistent order (min, max)."""
     return (v, w) if v < w else (w, v)
+
 
 class FlipPartnerMap:
     """
@@ -26,7 +28,6 @@ class FlipPartnerMap:
     def build(points: list, edges: list[tuple[int, int]]) -> "FlipPartnerMap":
         edge_ = {(min(u, v), max(u, v)) for u, v in edges}
         instance = FlipPartnerMap(points, edge_)
-        instance.flip_map = {}
         instance._build_flip_map()
         return instance
 
@@ -50,7 +51,6 @@ class FlipPartnerMap:
         for norm_edge in self.edge_to_triangles:
             self._update_flip_partner(norm_edge=norm_edge)
 
-    
     def _update_flip_partner(self, norm_edge: tuple[int, int]):
         tris = self.edge_to_triangles[norm_edge]
         if len(tris) == 2:
@@ -60,8 +60,13 @@ class FlipPartnerMap:
                 del self.flip_map[norm_edge]
         elif norm_edge in self.flip_map:
             del self.flip_map[norm_edge]
-    
-    def _check_flippability(self, norm_edge: tuple[int, int], triang_1: tuple[int, int, int], triang_2: tuple[int, int, int]) -> tuple[int, int]|None:
+
+    def _check_flippability(
+        self,
+        norm_edge: tuple[int, int],
+        triang_1: tuple[int, int, int],
+        triang_2: tuple[int, int, int],
+    ) -> tuple[int, int] | None:
         opp1 = next(v for v in triang_1 if v not in norm_edge)
         opp2 = next(v for v in triang_2 if v not in norm_edge)
         if do_cross(
@@ -101,35 +106,42 @@ class FlipPartnerMap:
         Will flip the given edge and update the flip map accordingly.
         It will throw an error if the edge is not flippable.
         """
-        u, v = normalize_edge(*edge)
-        if (u, v) not in self.edges:
+        old_edge = normalize_edge(*edge)
+        if old_edge not in self.edges:
             raise ValueError("Edge does not exist in the triangulation")
-        if (u, v) not in self.flip_map:
+        if old_edge not in self.flip_map:
             raise ValueError("Edge is not flippable")
-        old_edge = (u, v)
-        opp1, opp2 = self.flip_map.pop(old_edge)
-        new_edge = normalize_edge(opp1, opp2)
+        new_edge = normalize_edge(*self.flip_map.pop(old_edge))
         self.flip_map[new_edge] = old_edge
 
         # Update the triangles incident to the old edge
         self.edge_to_triangles.pop(old_edge)
 
         # Update triangles for the new edge
-        new_tri_1 = (opp1, opp2, u)
-        new_tri_2 = (opp1, opp2, v)
-        self.edge_to_triangles[new_edge] = [new_tri_1, new_tri_2]
+        new_tri_0 = (new_edge[0], new_edge[1], old_edge[0])
+        new_tri_1 = (new_edge[0], new_edge[1], old_edge[1])
+        self.edge_to_triangles[new_edge] = [new_tri_0, new_tri_1]
 
         # we need to replace the old triangle in the surrounding edges. This part is a bit ugly
         def contains_old_edge(tri):
             return old_edge[0] in tri and old_edge[1] in tri
-        e1 = normalize_edge(opp1, u)
-        self.edge_to_triangles[e1] = [new_tri_1]+[t for t in self.edge_to_triangles[e1] if not contains_old_edge(t)]
-        e2 = normalize_edge(opp2, u)
-        self.edge_to_triangles[e2] = [new_tri_1]+[t for t in self.edge_to_triangles[e2] if not contains_old_edge(t)]
-        e3 = normalize_edge(opp1, v)
-        self.edge_to_triangles[e3] = [new_tri_2]+[t for t in self.edge_to_triangles[e3] if not contains_old_edge(t)]
-        e4 = normalize_edge(opp2, v)
-        self.edge_to_triangles[e4] = [new_tri_2]+[t for t in self.edge_to_triangles[e4] if not contains_old_edge(t)]
+
+        e1 = normalize_edge(new_edge[0], w=old_edge[0])
+        self.edge_to_triangles[e1] = [new_tri_0] + [
+            t for t in self.edge_to_triangles[e1] if not contains_old_edge(t)
+        ]
+        e2 = normalize_edge(new_edge[1], old_edge[0])
+        self.edge_to_triangles[e2] = [new_tri_0] + [
+            t for t in self.edge_to_triangles[e2] if not contains_old_edge(t)
+        ]
+        e3 = normalize_edge(new_edge[0], old_edge[1])
+        self.edge_to_triangles[e3] = [new_tri_1] + [
+            t for t in self.edge_to_triangles[e3] if not contains_old_edge(t)
+        ]
+        e4 = normalize_edge(new_edge[1], old_edge[1])
+        self.edge_to_triangles[e4] = [new_tri_1] + [
+            t for t in self.edge_to_triangles[e4] if not contains_old_edge(t)
+        ]
 
         # Update the edges set
         self.edges.remove(old_edge)

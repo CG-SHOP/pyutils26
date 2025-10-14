@@ -637,7 +637,7 @@ class TestFlippableTriangulation:
     def test_eq_different_triangulations_different_edges(self):
         """Test that triangulations with different edges are not equal."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
-        
+
         triangulation1 = FlippableTriangulation.from_points_edges(points, [(0, 3)])
         triangulation2 = FlippableTriangulation.from_points_edges(points, [(1, 2)])
 
@@ -676,7 +676,6 @@ class TestFlippableTriangulation:
             "Triangulations with same edges and same pending flips should be equal"
         )
 
-
     def test_eq_after_commit_operations(self):
         """Test equality after commit operations."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
@@ -686,9 +685,7 @@ class TestFlippableTriangulation:
         triangulation2 = FlippableTriangulation.from_points_edges(points, edges)
 
         # Both start equal
-        assert triangulation1 == triangulation2, (
-            "Should start equal"
-        )
+        assert triangulation1 == triangulation2, "Should start equal"
 
         # Add and commit same flip to both
         triangulation1.add_flip((0, 3))
@@ -752,29 +749,29 @@ class TestFlippableTriangulation:
         points1 = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
         edges = [(0, 3)]
 
-        # Second triangulation - scaled square  
+        # Second triangulation - scaled square
         points2 = [Point(0, 0), Point(2, 0), Point(0, 2), Point(2, 2)]
-        
+
         triangulation1 = FlippableTriangulation.from_points_edges(points1, edges)
         triangulation2 = FlippableTriangulation.from_points_edges(points2, edges)
 
         # The equality check only compares edge indices, not point coordinates
         # So triangulations with same topological structure are considered equal
         result = triangulation1 == triangulation2
-        
+
         # We verify that the comparison works without making assumptions about
         # whether coordinate differences should affect equality
         assert isinstance(result, bool), (
             "Equality comparison should return a boolean value"
         )
-        
+
         # Test a case where points are definitely different enough to matter
         # Use different point count to ensure inequality
         points3 = [Point(0, 0), Point(1, 0), Point(0, 1)]  # Triangle
         edges3 = []
-        
+
         triangulation3 = FlippableTriangulation.from_points_edges(points3, edges3)
-        
+
         assert triangulation1 != triangulation3, (
             "Triangulations with different numbers of points should not be equal"
         )
@@ -815,14 +812,14 @@ class TestFlippableTriangulation:
 
         # Test with different edge orderings in the edges list
         edges_reordered = [(0, 5), (0, 1), (0, 4), (0, 2), (0, 3)]
-        triangulation3 = FlippableTriangulation.from_points_edges(points, edges_reordered)
+        triangulation3 = FlippableTriangulation.from_points_edges(
+            points, edges_reordered
+        )
 
         # This depends on how the FlipPartnerMap handles edge ordering internally
         # The triangulations should be equal if the internal representation is the same
         result = triangulation1 == triangulation3
-        
+
         # We don't assert a specific result here since it depends on internal implementation,
         # but we verify the comparison doesn't crash and returns a boolean
-        assert isinstance(result, bool), (
-            "Equality comparison should return boolean"
-        )
+        assert isinstance(result, bool), "Equality comparison should return boolean"

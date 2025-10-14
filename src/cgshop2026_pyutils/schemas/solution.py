@@ -7,6 +7,7 @@ ParallelFlips = list[tuple[NonNegativeInt, NonNegativeInt]]
 # A sequence of parallel flip sets is a list of such sets, representing the order in which they are applied.
 ParallelFlipSequence = list[ParallelFlips]
 
+
 class CGSHOP2026Solution(BaseModel):
     """
     This schema represents a solution for the CGSHOP 2026 challenge.
@@ -15,12 +16,14 @@ class CGSHOP2026Solution(BaseModel):
     The common triangulation does not need to be specified explicitly.
     Also the flip partners do not need to be specified, as they can be derived from the instance.
     """
+
     content_type: Literal["CGSHOP2026_Solution"] = "CGSHOP2026_Solution"
 
     instance_uid: str = Field(..., description="Unique identifier of the instance.")
 
     flips: list[ParallelFlipSequence] = Field(
-        ..., description="For each triangulation in the instance, a sequence of parallel flip sets that lead to a common triangulation."
+        ...,
+        description="For each triangulation in the instance, a sequence of parallel flip sets that lead to a common triangulation.",
     )
 
     @computed_field

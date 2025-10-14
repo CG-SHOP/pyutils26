@@ -157,7 +157,9 @@ class TestIsTriangulation:
             Point(0, 0),
         ]  # Last point is duplicate
         edges = []
-        assert not is_triangulation(points, edges), ("Duplicate points should not create valid triangulation")
+        assert not is_triangulation(points, edges), (
+            "Duplicate points should not create valid triangulation"
+        )
 
     def test_edge_indices_out_of_bounds(self):
         """Test that invalid edge indices are handled."""
@@ -371,45 +373,50 @@ class TestIsTriangulation:
 
     def test_nasty_overlap(self):
         points = [
-            Point(0,0),
-            Point(5,0),
-            Point(10,0),
+            Point(0, 0),
+            Point(5, 0),
+            Point(10, 0),
             Point(10, 1),
-            Point(0,1),
+            Point(0, 1),
         ]
-        edges = [(0,2), (0,1), (0, 4), (1,4), (1,3)]
-        assert not is_triangulation(points, edges), "The edge (0,2) should be illegal as it overlaps with the point 1"
+        edges = [(0, 2), (0, 1), (0, 4), (1, 4), (1, 3)]
+        assert not is_triangulation(points, edges), (
+            "The edge (0,2) should be illegal as it overlaps with the point 1"
+        )
 
     def test_nasty_overlap2(self):
         points = [
-            Point(0,0),
-            Point(5,0),
-            Point(10,0),
+            Point(0, 0),
+            Point(5, 0),
+            Point(10, 0),
             Point(10, 1),
-            Point(0,1),
+            Point(0, 1),
         ]
-        edges = [(0,1), (0,2), (0, 4), (1,4), (1,3)]
-        assert not is_triangulation(points, edges), "The edge (0,2) should be illegal as it overlaps with the point 1"
-
+        edges = [(0, 1), (0, 2), (0, 4), (1, 4), (1, 3)]
+        assert not is_triangulation(points, edges), (
+            "The edge (0,2) should be illegal as it overlaps with the point 1"
+        )
 
     def test_nasty_overlap3(self):
         points = [
-            Point(0,0), # 0
-            Point(1,0), # 1
-            Point(2,0), # 2
-            Point(2,2), # 3
-            Point(-2,2), # 4
-            Point(-2,-2), # 5
-            Point(2,-2), # 6
+            Point(0, 0),  # 0
+            Point(1, 0),  # 1
+            Point(2, 0),  # 2
+            Point(2, 2),  # 3
+            Point(-2, 2),  # 4
+            Point(-2, -2),  # 5
+            Point(2, -2),  # 6
         ]
         edges = [
             (0, 2),
             (0, 1),
             (0, 4),
-            (0,5),
-            (0,6),
-            (1,6),
-            (1,3),
+            (0, 5),
+            (0, 6),
+            (1, 6),
+            (1, 3),
             (0, 3),
         ]
-        assert not is_triangulation(points, edges), "Nasty overlapping edges (0,2) and (0,1) should be invalid"
+        assert not is_triangulation(points, edges), (
+            "Nasty overlapping edges (0,2) and (0,1) should be invalid"
+        )
