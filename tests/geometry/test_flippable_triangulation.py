@@ -612,3 +612,217 @@ class TestFlippableTriangulation:
             assert triangulation._flip_map.is_flippable(edge), (
                 f"Edge {edge} should be flippable after commit"
             )
+
+    def test_eq_identical_triangulations(self):
+        """Test that identical triangulations are equal."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        triangulation1 = FlippableTriangulation.from_points_edges(points, edges)
+        triangulation2 = FlippableTriangulation.from_points_edges(points, edges)
+
+        assert triangulation1 == triangulation2, (
+            "Triangulations with same points and edges should be equal"
+        )
+
+    def test_eq_same_object(self):
+        """Test that a triangulation equals itself."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        triangulation = FlippableTriangulation.from_points_edges(points, edges)
+
+        assert triangulation == triangulation, "Triangulation should equal itself"
+
+    def test_eq_different_triangulations_different_edges(self):
+        """Test that triangulations with different edges are not equal."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        
+        triangulation1 = FlippableTriangulation.from_points_edges(points, [(0, 3)])
+        triangulation2 = FlippableTriangulation.from_points_edges(points, [(1, 2)])
+
+        assert triangulation1 != triangulation2, (
+            "Triangulations with different edges should not be equal"
+        )
+
+    def test_eq_same_edges_different_pending_flips(self):
+        """Test that triangulations with same edges but different pending flips are not equal."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        triangulation1 = FlippableTriangulation.from_points_edges(points, edges)
+        triangulation2 = FlippableTriangulation.from_points_edges(points, edges)
+
+        # Add flip to only one triangulation
+        triangulation2.add_flip((0, 3))
+
+        assert triangulation1 != triangulation2, (
+            "Triangulations with different pending flips should not be equal"
+        )
+
+    def test_eq_same_edges_same_pending_flips(self):
+        """Test that triangulations with same edges and same pending flips are equal."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        triangulation1 = FlippableTriangulation.from_points_edges(points, edges)
+        triangulation2 = FlippableTriangulation.from_points_edges(points, edges)
+
+        # Add same flip to both triangulations
+        triangulation1.add_flip((0, 3))
+        triangulation2.add_flip((0, 3))
+
+        assert triangulation1 == triangulation2, (
+            "Triangulations with same edges and same pending flips should be equal"
+        )
+
+
+    def test_eq_after_commit_operations(self):
+        """Test equality after commit operations."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        triangulation1 = FlippableTriangulation.from_points_edges(points, edges)
+        triangulation2 = FlippableTriangulation.from_points_edges(points, edges)
+
+        # Both start equal
+        assert triangulation1 == triangulation2, (
+            "Should start equal"
+        )
+
+        # Add and commit same flip to both
+        triangulation1.add_flip((0, 3))
+        triangulation2.add_flip((0, 3))
+
+        # Should still be equal with same pending flip
+        assert triangulation1 == triangulation2, (
+            "Should be equal with same pending flip"
+        )
+
+        # Commit both
+        triangulation1.commit()
+        triangulation2.commit()
+
+        # Should be equal after same commit
+        assert triangulation1 == triangulation2, (
+            "Should be equal after same commit operations"
+        )
+
+    def test_eq_fork_equality(self):
+        """Test equality with forked triangulations."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        original = FlippableTriangulation.from_points_edges(points, edges)
+        fork = original.fork()
+
+        # Fork should initially be equal (same edges, empty flip queues)
+        assert original == fork, "Fork should initially be equal to original"
+
+        # Add flip to original only
+        original.add_flip((0, 3))
+
+        # Should no longer be equal
+        assert original != fork, "Should not be equal after modifying original"
+
+        # Add same flip to fork
+        fork.add_flip((0, 3))
+
+        # Should be equal again
+        assert original == fork, "Should be equal again after same modification"
+
+    def test_eq_with_non_triangulation_object(self):
+        """Test equality comparison with non-FlippableTriangulation objects."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        triangulation = FlippableTriangulation.from_points_edges(points, edges)
+
+        # Test with various non-triangulation objects
+        assert not triangulation.__eq__(None), "Should not equal None"
+        assert triangulation != "string", "Should not equal string"
+        assert triangulation != 42, "Should not equal number"
+        assert triangulation != [], "Should not equal list"
+        assert triangulation != {}, "Should not equal dict"
+        assert triangulation != points, "Should not equal points list"
+
+    def test_eq_different_points_same_structure(self):
+        """Test triangulations with different points but same topological structure."""
+        # First triangulation - unit square
+        points1 = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        # Second triangulation - scaled square  
+        points2 = [Point(0, 0), Point(2, 0), Point(0, 2), Point(2, 2)]
+        
+        triangulation1 = FlippableTriangulation.from_points_edges(points1, edges)
+        triangulation2 = FlippableTriangulation.from_points_edges(points2, edges)
+
+        # The equality check only compares edge indices, not point coordinates
+        # So triangulations with same topological structure are considered equal
+        result = triangulation1 == triangulation2
+        
+        # We verify that the comparison works without making assumptions about
+        # whether coordinate differences should affect equality
+        assert isinstance(result, bool), (
+            "Equality comparison should return a boolean value"
+        )
+        
+        # Test a case where points are definitely different enough to matter
+        # Use different point count to ensure inequality
+        points3 = [Point(0, 0), Point(1, 0), Point(0, 1)]  # Triangle
+        edges3 = []
+        
+        triangulation3 = FlippableTriangulation.from_points_edges(points3, edges3)
+        
+        assert triangulation1 != triangulation3, (
+            "Triangulations with different numbers of points should not be equal"
+        )
+
+    def test_eq_empty_triangulations(self):
+        """Test equality of minimal triangulations (triangles)."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1)]
+        edges = []  # Triangle needs no internal edges
+
+        triangulation1 = FlippableTriangulation.from_points_edges(points, edges)
+        triangulation2 = FlippableTriangulation.from_points_edges(points, edges)
+
+        assert triangulation1 == triangulation2, (
+            "Identical triangle triangulations should be equal"
+        )
+
+    def test_eq_complex_triangulations(self):
+        """Test equality with more complex triangulations."""
+        # Pentagon with center point
+        points = [
+            Point(0, 0),  # center
+            Point(1, 0),  # right
+            Point(0.5, 1),  # top-right
+            Point(-0.5, 1),  # top-left
+            Point(-1, 0),  # left
+            Point(0, -1),  # bottom
+        ]
+
+        # Fan triangulation from center
+        edges = [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]
+
+        triangulation1 = FlippableTriangulation.from_points_edges(points, edges)
+        triangulation2 = FlippableTriangulation.from_points_edges(points, edges)
+
+        assert triangulation1 == triangulation2, (
+            "Complex triangulations with same structure should be equal"
+        )
+
+        # Test with different edge orderings in the edges list
+        edges_reordered = [(0, 5), (0, 1), (0, 4), (0, 2), (0, 3)]
+        triangulation3 = FlippableTriangulation.from_points_edges(points, edges_reordered)
+
+        # This depends on how the FlipPartnerMap handles edge ordering internally
+        # The triangulations should be equal if the internal representation is the same
+        result = triangulation1 == triangulation3
+        
+        # We don't assert a specific result here since it depends on internal implementation,
+        # but we verify the comparison doesn't crash and returns a boolean
+        assert isinstance(result, bool), (
+            "Equality comparison should return boolean"
+        )

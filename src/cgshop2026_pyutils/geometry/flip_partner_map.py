@@ -1,6 +1,9 @@
 from collections import defaultdict
 from ._bindings import compute_triangles, do_cross, Segment
 
+def normalize_edge(v: int, w: int) -> tuple[int, int]:
+    """Returns a tuple representing the edge in a consistent order (min, max)."""
+    return (v, w) if v < w else (w, v)
 
 class FlipPartnerMap:
     """
@@ -38,9 +41,8 @@ class FlipPartnerMap:
         for tri in triangles:
             edges = [(tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])]
             for u, v in edges:
-                if u > v:
-                    u, v = v, u  # Store edges in a consistent order
-                edge_to_triangles[(u, v)].append(tri)
+                edge = normalize_edge(u, v)
+                edge_to_triangles[edge].append(tri)
         # 2. Build the flip map for edges that are shared by exactly two triangles.
         flip_map = {}
         for edge, tris in edge_to_triangles.items():
@@ -69,9 +71,7 @@ class FlipPartnerMap:
         """
         These are the edges that cannot be flipped if the given edge is flipped.
         """
-        u, v = edge
-        if u > v:
-            u, v = v, u
+        u, v = normalize_edge(*edge)
         if (u, v) not in self.flip_map:
             raise ValueError("Edge is not flippable")
         opp1, opp2 = self.flip_map[(u, v)]
@@ -88,9 +88,7 @@ class FlipPartnerMap:
         Will flip the given edge and update the flip map accordingly.
         It will throw an error if the edge is not flippable.
         """
-        u, v = edge
-        if u > v:
-            u, v = v, u
+        u, v = normalize_edge(*edge)
         if (u, v) not in self.edges:
             raise ValueError("Edge does not exist in the triangulation")
         if (u, v) not in self.flip_map:
@@ -120,9 +118,7 @@ class FlipPartnerMap:
         """
         Returns the flip partner of the given edge.
         """
-        u, v = edge
-        if u > v:
-            u, v = v, u
+        u, v = normalize_edge(*edge)
         if (u, v) not in self.flip_map:
             raise ValueError("Edge is not flippable")
         return self.flip_map[(u, v)]

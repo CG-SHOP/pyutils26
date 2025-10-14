@@ -1,4 +1,4 @@
-from .flip_partner_map import FlipPartnerMap
+from .flip_partner_map import FlipPartnerMap, normalize_edge
 from ._bindings import is_triangulation
 
 
@@ -14,6 +14,18 @@ class FlippableTriangulation:
         self._flip_map = flip_map
         self._flip_queue = []
         self._conflicting_edges = set()
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Checks if two triangulations are equal (same edges and same pending flips).
+        """
+        if not isinstance(other, FlippableTriangulation):
+            return False
+        if self._flip_map.edges != other._flip_map.edges:
+            return False
+        flip_queue_set = {normalize_edge(*e) for e in self._flip_queue}
+        other_flip_queue_set = {normalize_edge(*e) for e in other._flip_queue}
+        return flip_queue_set == other_flip_queue_set
 
     @staticmethod
     def from_points_edges(
