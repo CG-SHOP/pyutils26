@@ -60,6 +60,7 @@ def draw_flips(
     triangulation: FlippableTriangulation,
     ax: Axes | None = None,
     show_indices: bool = False,
+    title: str | None = None,
 ):
     """
     Visualizes the triangulation and highlights pending flips on the given matplotlib Axes.
@@ -148,6 +149,8 @@ def draw_flips(
             )
 
     ax.set_aspect("equal")
+    if title:
+        ax.set_title(title)
     ax.autoscale_view()
     # Add legend only once if flips exist
     if flip_queue:
