@@ -148,7 +148,7 @@ bool is_triangulation(const std::vector<Point> &points,
 
   // Check that no new vertices were created by intersections
   std::vector<std::tuple<int, int>> edges_in_arrangement;
-  if (arrangement.number_of_vertices() != initial_vertex_count) {
+  if (arrangement.number_of_vertices() > initial_vertex_count) {
     if (verbose)
       fmt::print(
           "ERROR: New intersection points were created. Expected {}, got {}\n",
@@ -163,6 +163,28 @@ bool is_triangulation(const std::vector<Point> &points,
       if (verbose)
         fmt::print("  Vertex {}: {}\n", vertex_idx,
                    point_to_string(v_it->point()));
+    }
+    return false;
+  }
+  if (arrangement.number_of_vertices() < initial_vertex_count) {
+    if (verbose)
+      fmt::print(
+          "ERROR: Points are missing in arrangement. Expected {}, got {}\n",
+          initial_vertex_count, arrangement.number_of_vertices());
+
+    // List all vertices in the arrangement to help debug
+    if (verbose) {
+      fmt::print("Arrangement vertices:\n");
+      size_t vertex_idx = 0;
+      for (auto v_it = arrangement.vertices_begin();
+         v_it != arrangement.vertices_end(); ++v_it, ++vertex_idx) {
+      fmt::print("  Vertex {}: {}\n", vertex_idx,
+             point_to_string(v_it->point()));
+      }
+      fmt::print("Original vertices:\n");
+      for (size_t i = 0; i < points.size(); ++i) {
+      fmt::print("  Point {}: {}\n", i, point_to_string(points[i]));
+      }
     }
     return false;
   }

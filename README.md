@@ -288,6 +288,7 @@ Issues & PRs welcome. Please:
 
 ## Changelog
 
+- **0.2.0** (2025-10-14): Added `get_edges()` to `FlippableTriangulation`; improved flip map rebuilding; enhanced error messages.
 - **0.1.0** (2025-10-14): Initial release
 
 ---

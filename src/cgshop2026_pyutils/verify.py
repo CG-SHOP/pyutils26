@@ -3,7 +3,7 @@ from .geometry import FlippableTriangulation, Point
 
 
 def check_for_errors(
-    instance: CGSHOP2026Instance, solution: CGSHOP2026Solution
+    instance: CGSHOP2026Instance, solution: CGSHOP2026Solution, full_recompute: bool = False
 ) -> list[str]:
     """
     Verifies the given solution against the provided instance and returns a list of error messages if any issues are found.
@@ -21,6 +21,8 @@ def check_for_errors(
                 except ValueError as e:
                     return [f"Error when flipping edge {edge} in triangulation: {e}"]
             tri.commit()
+            if full_recompute:
+                tri._flip_map._rebuild_flip_map()
     for i in range(1, len(triangulations)):
         if triangulations[i] != triangulations[0]:
             return [

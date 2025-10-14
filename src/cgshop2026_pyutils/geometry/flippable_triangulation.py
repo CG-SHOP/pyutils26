@@ -35,7 +35,7 @@ class FlippableTriangulation:
         Validates input and builds the internal flip map.
         Use this factory when creating an instance from raw points/edges.
         """
-        if not is_triangulation(points, edges):
+        if not is_triangulation(points, edges, verbose=False):
             raise ValueError(
                 "The provided edges do not form a valid triangulation of the given points."
             )
@@ -47,6 +47,12 @@ class FlippableTriangulation:
         Creates a copy of the triangulation that can be modified independently.
         """
         return FlippableTriangulation(self._flip_map.deep_copy())
+    
+    def get_edges(self) -> list[tuple[int, int]]:
+        """
+        Returns the list of edges in the triangulation.
+        """
+        return list(self._flip_map.edges)
 
     def add_flip(self, edge: tuple[int, int]) -> tuple[int, int]:
         """

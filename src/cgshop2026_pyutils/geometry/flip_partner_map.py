@@ -33,7 +33,7 @@ class FlipPartnerMap:
     def build(points: list, edges: list[tuple[int, int]]) -> "FlipPartnerMap":
         edge_ = {(min(u, v), max(u, v)) for u, v in edges}
         instance = FlipPartnerMap(points, edge_, {})
-        instance._build_flip_map()
+        instance._rebuild_flip_map()
         return instance
 
     def compute_triangles(self) -> list[tuple[int, int, int]]:
@@ -41,9 +41,14 @@ class FlipPartnerMap:
         Computes the triangles formed by the current edges in the flip map.
         """
         return compute_triangles(self.points, [edge for edge in self.edges])
-
-    def _build_flip_map(self):
+    
+    def _rebuild_flip_map(self):
+        """
+        Rebuilds the flip map by recomputing the triangles and their incident edges.
+        Can also be used if you do not want to rely on the incremental updates via flip().
+        """
         triangles = self.compute_triangles()
+        self.edges.clear()
         # 1. Collect the triangles each edge is incident to.
         self.edge_to_triangles = defaultdict(list)
         for tri in triangles:
@@ -53,7 +58,7 @@ class FlipPartnerMap:
                 self.edges.add(norm_edge)
                 self.edge_to_triangles[norm_edge].append(tri)
         # 2. Build the flip map for edges that are shared by exactly two triangles.
-        self.flip_map = {}  # clear existing map
+        self.flip_map.clear()  # clear existing map
         for norm_edge in self.edge_to_triangles:
             self._update_flip_partner(norm_edge=norm_edge)
 
