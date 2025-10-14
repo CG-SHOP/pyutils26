@@ -59,8 +59,7 @@ class FlippableTriangulation:
         Returns:
             The new edge created by the flip operation.
         """
-        if edge[0] > edge[1]:
-            edge = (edge[1], edge[0])
+        edge = normalize_edge(*edge)
         if edge in self._conflicting_edges:
             raise ValueError("Edge flip conflicts with previously added flips.")
         if not self._flip_map.is_flippable(edge):
