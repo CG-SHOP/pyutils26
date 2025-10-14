@@ -97,7 +97,7 @@ class TestFlipPartnerMap:
 
         # Try to flip a boundary edge (should fail)
         with pytest.raises(
-            ValueError, match="Edge does not exist in the triangulation"
+            ValueError, match="Edge is not flippable"
         ):
             flip_map.flip((0, 1))
 
