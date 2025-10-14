@@ -116,7 +116,10 @@ def draw_flips(
             zorder=3,
             label="Pending Flip" if edge == flip_queue[0] else "",
         )
-        partner = triangulation._flip_map.get_flip_partner(edge)
+        try:
+            partner = triangulation.get_flip_partner(edge)
+        except ValueError:
+            partner = None
         if partner:
             pu, pv = partner
             ax.plot(

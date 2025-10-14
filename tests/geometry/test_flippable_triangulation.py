@@ -99,6 +99,24 @@ class TestFlippableTriangulation:
         assert len(triangulation._flip_queue) == 1, "Should have one pending flip"
         assert new_edge == (1, 2), "Should return the flip partner edge"
 
+    def test_get_flip_partner_convenience(self):
+        """Test the convenience wrapper FlippableTriangulation.get_flip_partner."""
+        points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
+        edges = [(0, 3)]
+
+        tri = FlippableTriangulation.from_points_edges(points, edges)
+        # Edge should be flippable initially
+        assert (0,3) in tri.possible_flips()
+        partner_direct = tri._flip_map.get_flip_partner((0,3))
+        partner_via_method = tri.get_flip_partner((0,3))
+        assert partner_direct == partner_via_method, "Convenience method should match underlying map"
+        # Normalize reversed order argument
+        partner_reversed = tri.get_flip_partner((3,0))
+        assert partner_reversed == partner_direct, "Method should normalize edge order"
+        # After adding to queue still accessible
+        tri.add_flip((0,3))
+        assert tri.get_flip_partner((0,3)) == partner_direct
+
     def test_add_flip_edge_ordering_normalized(self):
         """Test that edge ordering is normalized when adding flips."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]

@@ -89,3 +89,21 @@ class FlippableTriangulation:
             for e in self._flip_map.flippable_edges()
             if e not in self._conflicting_edges and e not in self._flip_queue
         ]
+
+    def get_flip_partner(self, edge: tuple[int, int]) -> tuple[int, int]:
+        """Return the flip partner of a flippable edge.
+
+        This is a convenience wrapper around the underlying flip map to avoid
+        accessing the internal `_flip_map` attribute from user code.
+
+        Args:
+            edge: The edge to query (order independent).
+
+        Returns:
+            The partner edge (u,v) that would replace the given edge when flipped.
+
+        Raises:
+            ValueError: If the edge is not flippable.
+        """
+        edge = normalize_edge(*edge)
+        return self._flip_map.get_flip_partner(edge)
