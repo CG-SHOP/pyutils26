@@ -34,6 +34,6 @@ class CGSHOP2026Solution(BaseModel):
     @computed_field
     def objective_value(self) -> NonNegativeInt:
         """
-        Computes the objective value of the solution, which is the total number of flips performed across all triangulations.
+        Computes the objective value of the solution, which is the total number of parallel flip sets used across all triangulations.
         """
-        return sum(len(flip_set) for seq in self.flips for flip_set in seq)
+        return sum(len(seq) for seq in self.flips)
