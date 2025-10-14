@@ -1,5 +1,5 @@
 from collections import defaultdict
-from ._bindings import compute_triangles, do_cross, Segment
+from ._bindings import compute_triangles, do_cross, Segment, Point, is_triangulation
 
 
 def normalize_edge(v: int, w: int) -> tuple[int, int]:
@@ -18,16 +18,21 @@ class FlipPartnerMap:
     All edges that belong to the two triangles incident to a flippable edge are considered conflicting flips, as flipping one of them would invalidate the other.
     """
 
-    def __init__(self, points: list, edges: set[tuple[int, int]]):
+    def __init__(
+        self,
+        points: list[Point],
+        edges: set[tuple[int, int]],
+        flip_map: dict[tuple[int, int], tuple[int, int]],
+    ):
         self.points = points
         self.edges = edges
-        self.flip_map = {}
+        self.flip_map = flip_map
         self.edge_to_triangles = defaultdict(list)
 
     @staticmethod
     def build(points: list, edges: list[tuple[int, int]]) -> "FlipPartnerMap":
         edge_ = {(min(u, v), max(u, v)) for u, v in edges}
-        instance = FlipPartnerMap(points, edge_)
+        instance = FlipPartnerMap(points, edge_, {})
         instance._build_flip_map()
         return instance
 
@@ -45,6 +50,7 @@ class FlipPartnerMap:
             edges = [(tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])]
             for u, v in edges:
                 norm_edge = normalize_edge(u, v)
+                self.edges.add(norm_edge)
                 self.edge_to_triangles[norm_edge].append(tri)
         # 2. Build the flip map for edges that are shared by exactly two triangles.
         self.flip_map = {}  # clear existing map
@@ -156,8 +162,7 @@ class FlipPartnerMap:
         return new_edge
 
     def deep_copy(self) -> "FlipPartnerMap":
-        copy = FlipPartnerMap(self.points, self.edges.copy())
-        copy.flip_map = self.flip_map.copy()
+        copy = FlipPartnerMap(self.points, self.edges.copy(), self.flip_map.copy())
         copy.edge_to_triangles = self.edge_to_triangles.copy()
         return copy
 
@@ -175,3 +180,23 @@ class FlipPartnerMap:
         if (u, v) not in self.flip_map:
             raise ValueError("Edge is not flippable")
         return self.flip_map[(u, v)]
+
+
+def expand_edges_by_convex_hull_edges(
+    points: list[Point], edges: list[tuple[int, int]]
+) -> list[tuple[int, int]]:
+    """
+    Expands the given set of edges by adding the edges of the convex hull of the points.
+    This ensures that the triangulation is valid and covers the entire convex hull.
+
+    Args:
+        points: List of Point objects representing the vertices.
+        edges: List of edges represented as tuples of vertex indices.
+
+    Returns:
+        A new list of edges that includes the original edges and the convex hull edges.
+    """
+    if not is_triangulation(points, edges):
+        raise ValueError("The provided edges do not form a valid triangulation of the given points.")
+    flip_partner_map = FlipPartnerMap.build(points, edges)
+    return list(flip_partner_map.edges)
