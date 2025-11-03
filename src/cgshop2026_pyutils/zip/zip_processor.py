@@ -47,7 +47,7 @@ class ZipSolutionIterator:
         path_or_file: Union[BinaryIO, str, PathLike],
         file_size_limit: int = 250 * 1_000_000,  # 250 MB file size limit
         zip_size_limit: int = 2_000 * 1_000_000,  # 2 GB zip size limit
-        solution_extensions=(".solution.json",),
+        solution_extensions=(".solution.json", ".sol.json"),
     ):
         self.path = path_or_file
         self._checker = BadZipChecker(
