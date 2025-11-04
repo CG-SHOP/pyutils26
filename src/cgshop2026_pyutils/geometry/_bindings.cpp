@@ -25,9 +25,11 @@
 #include <exception>
 #include <fmt/core.h>
 #include <unordered_map>
+#include <unordered_set>
 
 // for duplicate check
 #include <map>
+#include <set>
 
 namespace cgshop2026 {
 // Define CGAL types for easy readability and maintenance
@@ -43,10 +45,28 @@ using Face_handle = Arrangement_2::Face_handle;
 using PointLocation = CGAL::Arr_naive_point_location<Arrangement_2>;
 using Rational = CGAL::Gmpq;
 
+// Hash function for std::tuple<int, int> to use in unordered_set
+struct TupleHash {
+  std::size_t operator()(const std::tuple<int, int>& t) const {
+    auto h1 = std::hash<int>{}(std::get<0>(t));
+    auto h2 = std::hash<int>{}(std::get<1>(t));
+    return h1 ^ (h2 << 1);
+  }
+};
+
 std::string point_to_string(const Point &p) {
   return fmt::format("({}, {})", CGAL::to_double(p.x()),
                      CGAL::to_double(p.y()));
 }
+
+// Less comparator that’s robust with CGAL number types
+struct LessPointXY {
+  bool operator()(const Point& a, const Point& b) const {
+    if (a.x() < b.x()) return true;
+    if (b.x() < a.x()) return false;
+    return a.y() < b.y();
+  }
+};
 
 /**
  * Two segments cross if they intersect in a point that is not an endpoint.
@@ -75,22 +95,22 @@ bool do_cross(const Segment2 &s1, const Segment2 &s2) {
 bool is_triangulation(const std::vector<Point> &points,
                       const std::vector<std::tuple<int, int>> &edges,
                       bool verbose = false) {
+  std::map<Point, int, LessPointXY> idx_of;
+  for (int i = 0; i < static_cast<int>(points.size()); ++i) {
+    idx_of.emplace(points[i], i);
+    // expect the idx_of to be of size i+1 after this insertion
+    // otherwise, a duplicate point was inserted
+    if (idx_of.size() != i + 1) {
+      if (verbose)
+        fmt::print("ERROR: Duplicate point found at index {}: {}\n", i,
+                   point_to_string(points[i]));
+      return false; // Duplicate point found
+    }
+  }
   // Create an arrangement to hold the edges
   Arrangement_2 arrangement;
   PointLocation point_location(arrangement);
   
-  // Check that each point is unique
-  for (size_t i = 0; i < points.size(); ++i) {
-    for (size_t j = i + 1; j < points.size(); ++j) {
-      if (points[i] == points[j]) {
-        if (verbose)
-          fmt::print("ERROR: Duplicate points found at indices {} and {}: {}\n",
-                     i, j, point_to_string(points[i]));
-        return false; // Duplicate points found
-      }
-    }
-  }
-
   // Store initial number of vertices to check for new intersections
   size_t initial_vertex_count = points.size();
 
@@ -147,7 +167,7 @@ bool is_triangulation(const std::vector<Point> &points,
                initial_vertex_count, arrangement.number_of_vertices());
 
   // Check that no new vertices were created by intersections
-  std::vector<std::tuple<int, int>> edges_in_arrangement;
+  std::unordered_set<std::tuple<int, int>, TupleHash> edges_in_arrangement;
   if (arrangement.number_of_vertices() > initial_vertex_count) {
     if (verbose)
       fmt::print(
@@ -247,9 +267,9 @@ bool is_triangulation(const std::vector<Point> &points,
     std::vector<int> vertex_indices;
     do {
       Point p = e->source()->point();
-      auto it = std::find(points.begin(), points.end(), p);
-      if (it != points.end()) {
-        vertex_indices.push_back(std::distance(points.begin(), it));
+      auto it = idx_of.find(p);
+      if (it != idx_of.end()) {
+        vertex_indices.push_back(it->second);
       } else {
         if (verbose)
           fmt::print("ERROR: Face vertex {} not found in original points list.\n",
@@ -259,18 +279,15 @@ bool is_triangulation(const std::vector<Point> &points,
       e = e->next();
     } while (e != it->outer_ccb());
 
-    edges_in_arrangement.emplace_back(vertex_indices[0], vertex_indices[1]);
-    edges_in_arrangement.emplace_back(vertex_indices[1], vertex_indices[2]);
-    edges_in_arrangement.emplace_back(vertex_indices[2], vertex_indices[0]);
+    edges_in_arrangement.emplace(vertex_indices[0], vertex_indices[1]);
+    edges_in_arrangement.emplace(vertex_indices[1], vertex_indices[2]);
+    edges_in_arrangement.emplace(vertex_indices[2], vertex_indices[0]);
   }
 
   // check that all edge also appear in the arrangement
   for(const auto &edge : edges) {
-    if (std::find(edges_in_arrangement.begin(), edges_in_arrangement.end(),
-                  edge) == edges_in_arrangement.end() &&
-        std::find(edges_in_arrangement.begin(), edges_in_arrangement.end(),
-                  std::make_tuple(std::get<1>(edge), std::get<0>(edge))) ==
-            edges_in_arrangement.end()) {
+    if (edges_in_arrangement.count(edge) == 0 &&
+        edges_in_arrangement.count(std::make_tuple(std::get<1>(edge), std::get<0>(edge))) == 0) {
       if (verbose)
         fmt::print("ERROR: Edge ({}, {}) from faces not found in arrangement.\n",
                    std::get<0>(edge), std::get<1>(edge));
@@ -300,63 +317,87 @@ bool is_triangulation(const std::vector<Point> &points,
  * will be sorted in each triangle, and the list of triangles will also be
  * sorted.
  */
+
+
 std::vector<std::tuple<int, int, int>>
-compute_triangles(const std::vector<Point> &points,
-                  const std::vector<std::tuple<int, int>> &edges) {
-  // Create an arrangement to hold the edges
+compute_triangles(const std::vector<Point>& points,
+                  const std::vector<std::tuple<int, int>>& edges) {
+  std::cout<<"Computing triangles from " << points.size() << " points and "
+            << edges.size() << " edges." << std::endl;
+  // ---- 1) Pre-index all points: Point -> index (O(n log n))
+  std::map<Point, int, LessPointXY> idx_of;
+  for (int i = 0; i < static_cast<int>(points.size()); ++i) {
+    idx_of.emplace(points[i], i);
+  }
+
+  // ---- 2) Build arrangement
   Arrangement_2 arrangement;
   PointLocation point_location(arrangement);
 
-  // Insert the edges into the arrangement
-  for (const auto &edge : edges) {
-    int i = std::get<0>(edge);
-    int j = std::get<1>(edge);
-    if (i < 0 || i >= points.size() || j < 0 || j >= points.size()) {
+  // Insert input edges
+  for (const auto& edge : edges) {
+    const int i = std::get<0>(edge);
+    const int j = std::get<1>(edge);
+    if (i < 0 || i >= static_cast<int>(points.size())
+        || j < 0 || j >= static_cast<int>(points.size())) {
       throw std::runtime_error("Edge indices are out of bounds.");
     }
-    Segment2 segment(points[i], points[j]);
-    CGAL::insert(arrangement, segment, point_location);
+    const Segment2 seg(points[i], points[j]);
+    CGAL::insert(arrangement, seg, point_location);
   }
 
-  // Automatically add convex hull edges if not present
+  // Add convex hull edges (if not present)
   std::vector<Point> hull;
+  hull.reserve(points.size());
   CGAL::convex_hull_2(points.begin(), points.end(), std::back_inserter(hull));
   for (size_t k = 0; k < hull.size(); ++k) {
-    Point p1 = hull[k];
-    Point p2 = hull[(k + 1) % hull.size()];
-    Segment2 hull_edge(p1, p2);
+    const Point& p1 = hull[k];
+    const Point& p2 = hull[(k + 1) % hull.size()];
+    const Segment2 hull_edge(p1, p2);
     CGAL::insert(arrangement, hull_edge, point_location);
   }
 
-  // Extract triangles from the arrangement
+  // ---- 3) Extract triangular faces
   std::vector<std::tuple<int, int, int>> triangles;
-  for (auto it = arrangement.faces_begin(); it != arrangement.faces_end();
-       ++it) {
-    if (it->is_unbounded())
-      continue;
+  triangles.reserve(arrangement.number_of_faces()); // rough upper bound
 
-    // Collect the vertices of the face
-    std::vector<int> vertex_indices;
-    Halfedge_const_handle e = it->outer_ccb();
+  for (auto fit = arrangement.faces_begin(); fit != arrangement.faces_end(); ++fit) {
+    if (fit->is_unbounded()) continue;
+
+    // Walk the boundary once; count degree quickly
+    std::array<int, 3> idxs;
+    int deg = 0;
+
+    Halfedge_const_handle e = fit->outer_ccb();
+    Halfedge_const_handle start = e;
+
     do {
-      Point p = e->source()->point();
-      auto it = std::find(points.begin(), points.end(), p);
-      if (it != points.end()) {
-        vertex_indices.push_back(std::distance(points.begin(), it));
-      } else {
-        throw std::runtime_error(
-            "Face vertex not found in original points list.");
-      }
-      e = e->next();
-    } while (e != it->outer_ccb());
+      if (deg > 3) break; // early out: not a triangle
 
-    // Only consider triangular faces
-    if (vertex_indices.size() == 3) {
-      std::sort(vertex_indices.begin(), vertex_indices.end());
-      triangles.emplace_back(vertex_indices[0], vertex_indices[1],
-                             vertex_indices[2]);
+      const Point& pv = e->source()->point();
+      auto it = idx_of.find(pv);
+      if (it == idx_of.end()) {
+        // This vertex wasn't one of the original points (likely an intersection).
+        // Skip this face to mirror your original behavior but without throwing.
+        deg = 999; // mark as invalid
+        break;
+      }
+      if (deg < 3) idxs[deg] = it->second;
+      ++deg;
+
+      e = e->next();
+    } while (e != start);
+
+    if (deg == 3) {
+      // canonicalize order
+      std::sort(idxs.begin(), idxs.end());
+      triangles.emplace_back(idxs[0], idxs[1], idxs[2]);
     }
   }
+
+  // (Optional) deduplicate triangles if your arrangement can produce duplicates
+  std::sort(triangles.begin(), triangles.end());
+  triangles.erase(std::unique(triangles.begin(), triangles.end()), triangles.end());
 
   return triangles;
 }
@@ -380,125 +421,6 @@ std::vector<int64_t> compute_convex_hull(const std::vector<Point> &points) {
   }
   return result;
 }
-
-// Helper class to manage geometry and verify solutions using CGAL's
-// arrangements
-class VerificationGeometryHelper {
-public:
-  VerificationGeometryHelper()
-      : arrangement_(), point_location_(arrangement_) {}
-
-  // Add a point to the arrangement and return its index
-  int add_point(const Point &p) {
-    CGAL::insert_point(arrangement_, p, point_location_);
-    points_.push_back(p);
-    return static_cast<int>(points_.size() - 1);
-  }
-
-  // Add a segment between two points in the arrangement
-  void add_segment(const int i, const int j) {
-    const Point &p1 = points_[i];
-    const Point &p2 = points_[j];
-    Segment2 s(p1, p2);
-    CGAL::insert(arrangement_, s, point_location_);
-  }
-
-  // Get the number of points in the arrangement
-  int get_num_points() const {
-    return static_cast<int>(arrangement_.number_of_vertices());
-  }
-
-  // Search for any bounded face that is not triangular
-  std::optional<Point> search_for_non_triangular_faces() const {
-    for (auto it = arrangement_.faces_begin(); it != arrangement_.faces_end();
-         ++it) {
-      if (it->is_unbounded())
-        continue;
-
-      // Count the number of edges in the outer boundary
-      int num_edges = 0;
-      Halfedge_const_handle e = it->outer_ccb();
-      do {
-        num_edges++;
-        e = e->next();
-      } while (e != it->outer_ccb());
-
-      // If the face is not a triangle, return a point inside the face
-      if (num_edges != 3) {
-        return e->source()->point();
-      }
-    }
-    return std::nullopt;
-  }
-
-  // Search for faces with holes and return a point in such a face
-  std::optional<Point> search_for_faces_with_holes() const {
-    for (auto it = arrangement_.faces_begin(); it != arrangement_.faces_end();
-         ++it) {
-      if (!it->is_unbounded() && it->number_of_holes() > 0) {
-        return it->outer_ccb()->source()->point();
-      }
-    }
-    return std::nullopt;
-  }
-
-  // Count obtuse triangles in bounded faces
-  int count_obtuse_triangles() const {
-    int count = 0;
-    for (auto it = arrangement_.faces_begin(); it != arrangement_.faces_end();
-         ++it) {
-      if (it->is_unbounded())
-        continue;
-
-      // Get the three vertices of the face
-      auto e = it->outer_ccb();
-      Point p1 = e->source()->point();
-      Point p2 = e->target()->point();
-      e = e->next();
-      Point p3 = e->target()->point();
-
-      // Compute all three dot products to check for obtuse angles
-      std::array<Point, 3> points = {p1, p2, p3};
-      for (int i = 0; i < 3; i++) {
-        auto v1 = points[(i + 1) % 3] - points[i];
-        auto v2 = points[(i + 2) % 3] - points[i];
-        if (CGAL::scalar_product(v1, v2) < 0) {
-          count++;
-          break;
-        }
-      }
-    }
-    return count;
-  }
-
-  // Get points that are isolated (not connected by any edge)
-  std::vector<Point> search_for_isolated_points() const {
-    std::vector<Point> isolated_points;
-    for (auto it = arrangement_.vertices_begin();
-         it != arrangement_.vertices_end(); ++it) {
-      if (it->is_isolated()) {
-        isolated_points.push_back(it->point());
-      }
-    }
-    return isolated_points;
-  }
-
-  // Search for segments that have the same face on both sides
-  std::optional<Segment2> search_for_bad_edges() const {
-    for (auto it = arrangement_.edges_begin(); it != arrangement_.edges_end();
-         ++it) {
-      if (it->face() == it->twin()->face()) {
-        return it->curve();
-      }
-    }
-    return std::nullopt;
-  }
-
-protected:
-  std::vector<Point> points_;    // Store the points in the arrangement
-  Arrangement_2 arrangement_;    // The CGAL arrangement of segments and points
-  PointLocation point_location_; // A point location utility for fast querying
-};
 
 // Define CGAL types for constrained triangulation
 using Vb = CGAL::Triangulation_vertex_base_2<Kernel>;
@@ -847,24 +769,6 @@ PYBIND11_MODULE(_bindings, m) {
   m.def("intersection_point", &intersection_point,
         "Compute the intersection point of two segments.");
 
-  // VerificationGeometryHelper bindings
-  py::class_<VerificationGeometryHelper>(
-      m, "VerificationGeometryHelper",
-      "An exact solution verifier using arrangements.")
-      .def(py::init<>())
-      .def("add_point", &VerificationGeometryHelper::add_point)
-      .def("add_segment", &VerificationGeometryHelper::add_segment)
-      .def("search_for_isolated_points",
-           &VerificationGeometryHelper::search_for_isolated_points)
-      .def("search_for_bad_edges",
-           &VerificationGeometryHelper::search_for_bad_edges)
-      .def("get_num_points", &VerificationGeometryHelper::get_num_points)
-      .def("search_for_non_triangular_faces",
-           &VerificationGeometryHelper::search_for_non_triangular_faces)
-      .def("search_for_faces_with_holes",
-           &VerificationGeometryHelper::search_for_faces_with_holes)
-      .def("count_obtuse_triangles",
-           &VerificationGeometryHelper::count_obtuse_triangles);
 
   // ConstrainedTriangulation bindings
   py::class_<ConstrainedTriangulation>(m, "ConstrainedTriangulation",
