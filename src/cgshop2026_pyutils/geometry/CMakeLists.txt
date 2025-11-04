@@ -4,7 +4,12 @@ cpmaddpackage("gh:pybind/pybind11@3.0.1") # pybind11, essential
 find_package(CGAL REQUIRED)
 find_package(fmt REQUIRED)
 
-pybind11_add_module(_bindings ./_bindings.cpp)
+pybind11_add_module(_bindings
+    ./_bindings.cpp
+    ./number_parsing.cpp
+    ./geometry_operations.cpp
+    ./constrained_triangulation.cpp
+)
 target_link_libraries(_bindings PUBLIC fmt::fmt CGAL::CGAL)
 
 # enable compilation warnings
