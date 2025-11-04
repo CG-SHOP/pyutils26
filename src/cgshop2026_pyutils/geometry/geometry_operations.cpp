@@ -205,6 +205,15 @@ compute_triangles(const std::vector<Point> &points,
   std::vector<std::tuple<int, int, int>> triangles =
       extract_triangular_faces(arrangement, idx_of);
 
+  // Step 4: Sort
+  std::sort(triangles.begin(), triangles.end());
+  const auto num_triangles = triangles.size();
+  triangles.erase(std::unique(triangles.begin(), triangles.end()),
+                  triangles.end());
+  if (triangles.size() != num_triangles) {
+    throw std::runtime_error("Duplicate triangles found after extraction. This should not happen.");
+  }
+
   return triangles;
 }
 
