@@ -4,12 +4,38 @@
 
 namespace cgshop2026 {
 
+// ============================================================================
+// Helper functions for verbose output
+// ============================================================================
+
+static void print_arrangement_vertices(const Arrangement_2 &arrangement) {
+  fmt::print("Arrangement vertices:\n");
+  size_t vertex_idx = 0;
+  for (auto v_it = arrangement.vertices_begin();
+       v_it != arrangement.vertices_end(); ++v_it, ++vertex_idx) {
+    fmt::print("  Vertex {}: {}\n", vertex_idx,
+               point_to_string(v_it->point()));
+  }
+}
+
+static void print_original_points(const std::vector<Point> &points) {
+  fmt::print("Original vertices:\n");
+  for (size_t i = 0; i < points.size(); ++i) {
+    fmt::print("  Point {}: {}\n", i, point_to_string(points[i]));
+  }
+}
+
+// ============================================================================
+// Main validation functions
+// ============================================================================
+
 std::optional<std::map<Point, int, LessPointXY>>
 build_point_index_map(const std::vector<Point> &points, bool verbose) {
   std::map<Point, int, LessPointXY> idx_of;
+
   for (int i = 0; i < static_cast<int>(points.size()); ++i) {
-    idx_of.emplace(points[i], i);
-    if (idx_of.size() != static_cast<size_t>(i + 1)) {
+    auto [iter, inserted] = idx_of.emplace(points[i], i);
+    if (!inserted) {
       if (verbose)
         fmt::print("ERROR: Duplicate point found at index {}: {}\n", i,
                    point_to_string(points[i]));
@@ -29,13 +55,13 @@ bool insert_edges_into_arrangement(
   if (verbose)
     fmt::print("Inserting {} edges into arrangement.\n", edges.size());
 
-  for (size_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
-    const auto &edge = edges[edge_idx];
-    int i = std::get<0>(edge);
-    int j = std::get<1>(edge);
+  const int point_count = static_cast<int>(points.size());
 
-    if (i < 0 || i >= static_cast<int>(points.size()) ||
-        j < 0 || j >= static_cast<int>(points.size())) {
+  for (size_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
+    const auto &[i, j] = edges[edge_idx];
+
+    // Validate indices
+    if (i < 0 || i >= point_count || j < 0 || j >= point_count) {
       if (verbose)
         fmt::print(
             "ERROR: Edge {} has invalid indices ({}, {}). Point count: {}\n",
@@ -43,7 +69,8 @@ bool insert_edges_into_arrangement(
       throw std::runtime_error("Edge indices are out of bounds.");
     }
 
-    Segment2 segment(points[i], points[j]);
+    const Segment2 segment(points[i], points[j]);
+
     if (verbose)
       fmt::print("  Edge {}: {} -> {} (points {} to {})\n", edge_idx,
                  point_to_string(points[i]), point_to_string(points[j]), i, j);
@@ -69,6 +96,7 @@ void add_convex_hull_to_arrangement(
     bool verbose) {
 
   std::vector<Point> hull;
+  hull.reserve(points.size()); // Reserve to avoid reallocations
   CGAL::convex_hull_2(points.begin(), points.end(), std::back_inserter(hull));
 
   if (verbose)
@@ -76,10 +104,11 @@ void add_convex_hull_to_arrangement(
         "Convex hull has {} vertices. Adding hull edges if not present.\n",
         hull.size());
 
-  for (size_t k = 0; k < hull.size(); ++k) {
+  const size_t hull_size = hull.size();
+  for (size_t k = 0; k < hull_size; ++k) {
     const Point &p1 = hull[k];
-    const Point &p2 = hull[(k + 1) % hull.size()];
-    Segment2 hull_edge(p1, p2);
+    const Point &p2 = hull[(k + 1) % hull_size];
+    const Segment2 hull_edge(p1, p2);
 
     if (verbose)
       fmt::print("  Hull edge {}: {} -> {}\n", k, point_to_string(p1),
@@ -95,47 +124,35 @@ bool validate_vertex_count(
     const std::vector<Point> &points,
     bool verbose) {
 
+  const size_t actual_count = arrangement.number_of_vertices();
+
   if (verbose)
     fmt::print("Initial vertex count: {}, Arrangement vertex count: {}\n",
-               expected_count, arrangement.number_of_vertices());
+               expected_count, actual_count);
 
-  if (arrangement.number_of_vertices() > expected_count) {
-    if (verbose) {
-      fmt::print(
-          "ERROR: New intersection points were created. Expected {}, got {}\n",
-          expected_count, arrangement.number_of_vertices());
-      fmt::print("Arrangement vertices:\n");
-      size_t vertex_idx = 0;
-      for (auto v_it = arrangement.vertices_begin();
-           v_it != arrangement.vertices_end(); ++v_it, ++vertex_idx) {
-        fmt::print("  Vertex {}: {}\n", vertex_idx,
-                   point_to_string(v_it->point()));
-      }
-    }
+  if (actual_count == expected_count) {
+    return true;
+  }
+
+  // Vertex count mismatch - provide detailed error
+  if (!verbose) {
     return false;
   }
 
-  if (arrangement.number_of_vertices() < expected_count) {
-    if (verbose) {
-      fmt::print(
-          "ERROR: Points are missing in arrangement. Expected {}, got {}\n",
-          expected_count, arrangement.number_of_vertices());
-      fmt::print("Arrangement vertices:\n");
-      size_t vertex_idx = 0;
-      for (auto v_it = arrangement.vertices_begin();
-           v_it != arrangement.vertices_end(); ++v_it, ++vertex_idx) {
-        fmt::print("  Vertex {}: {}\n", vertex_idx,
-                   point_to_string(v_it->point()));
-      }
-      fmt::print("Original vertices:\n");
-      for (size_t i = 0; i < points.size(); ++i) {
-        fmt::print("  Point {}: {}\n", i, point_to_string(points[i]));
-      }
-    }
-    return false;
+  if (actual_count > expected_count) {
+    fmt::print(
+        "ERROR: New intersection points were created. Expected {}, got {}\n",
+        expected_count, actual_count);
+    print_arrangement_vertices(arrangement);
+  } else {
+    fmt::print(
+        "ERROR: Points are missing in arrangement. Expected {}, got {}\n",
+        expected_count, actual_count);
+    print_arrangement_vertices(arrangement);
+    print_original_points(points);
   }
 
-  return true;
+  return false;
 }
 
 bool validate_all_faces_triangular(
@@ -158,16 +175,33 @@ bool validate_all_faces_triangular(
       continue;
     }
 
-    // Count edges and collect vertices
-    int edge_count = 0;
-    Halfedge_const_handle e = fit->outer_ccb();
+    // Walk face boundary once and collect both Point vertices and indices
     std::vector<Point> face_vertices;
+    std::vector<int> vertex_indices;
+    face_vertices.reserve(4); // Most will be 3, reserve 4 to handle non-triangular
+    vertex_indices.reserve(3);
+
+    Halfedge_const_handle e = fit->outer_ccb();
+    const Halfedge_const_handle start = e;
 
     do {
-      edge_count++;
-      face_vertices.push_back(e->source()->point());
+      const Point &p = e->source()->point();
+      face_vertices.push_back(p);
+
+      // Look up vertex index
+      auto it = idx_of.find(p);
+      if (it == idx_of.end()) {
+        if (verbose)
+          fmt::print("ERROR: Face vertex {} not found in original points list.\n",
+                     point_to_string(p));
+        return false;
+      }
+      vertex_indices.push_back(it->second);
+
       e = e->next();
-    } while (e != fit->outer_ccb());
+    } while (e != start);
+
+    const int edge_count = static_cast<int>(face_vertices.size());
 
     // Check if face is a triangle
     if (edge_count != 3) {
@@ -184,27 +218,12 @@ bool validate_all_faces_triangular(
     }
 
     triangular_faces++;
+
     if (verbose)
       fmt::print("  Face {}: Triangle with vertices: {}, {}, {}\n",
                  face_count, point_to_string(face_vertices[0]),
                  point_to_string(face_vertices[1]),
                  point_to_string(face_vertices[2]));
-
-    // Collect vertex indices and edges
-    std::vector<int> vertex_indices;
-    e = fit->outer_ccb();
-    do {
-      const Point &p = e->source()->point();
-      auto it = idx_of.find(p);
-      if (it == idx_of.end()) {
-        if (verbose)
-          fmt::print("ERROR: Face vertex {} not found in original points list.\n",
-                     point_to_string(p));
-        return false;
-      }
-      vertex_indices.push_back(it->second);
-      e = e->next();
-    } while (e != fit->outer_ccb());
 
     // Add the three edges of this triangle
     edges_in_arrangement.emplace(vertex_indices[0], vertex_indices[1]);
@@ -224,14 +243,15 @@ bool validate_input_edges_present(
     const std::unordered_set<std::tuple<int, int>, TupleHash> &edges_in_arrangement,
     bool verbose) {
 
-  for (const auto &edge : edges) {
-    // Check both orientations
-    if (edges_in_arrangement.count(edge) == 0 &&
-        edges_in_arrangement.count(std::make_tuple(std::get<1>(edge),
-                                                     std::get<0>(edge))) == 0) {
+  for (const auto &[i, j] : edges) {
+    // Check both orientations of the edge
+    const bool found = edges_in_arrangement.count({i, j}) > 0 ||
+                       edges_in_arrangement.count({j, i}) > 0;
+
+    if (!found) {
       if (verbose)
         fmt::print("ERROR: Edge ({}, {}) from input not found in arrangement.\n",
-                   std::get<0>(edge), std::get<1>(edge));
+                   i, j);
       return false;
     }
   }

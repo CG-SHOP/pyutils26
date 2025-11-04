@@ -38,8 +38,13 @@ bool do_cross(const Segment2 &s1, const Segment2 &s2) {
 bool is_triangulation(const std::vector<Point> &points,
                       const std::vector<std::tuple<int, int>> &edges,
                       bool verbose) {
+  if (verbose) {
+    fmt::print("Validating triangulation with {} points and {} edges.\n",
+               points.size(), edges.size());
+  }
+
   // Step 1: Build point-to-index mapping and check for duplicates
-  auto idx_of_opt = build_point_index_map(points, verbose);
+  const auto idx_of_opt = build_point_index_map(points, verbose);
   if (!idx_of_opt) {
     return false;
   }
@@ -57,16 +62,16 @@ bool is_triangulation(const std::vector<Point> &points,
   // Step 3: Add convex hull edges
   add_convex_hull_to_arrangement(points, arrangement, point_location, verbose);
 
-  // Step 4: Validate vertex count
-  if (verbose)
-    fmt::print("Checking triangulation properties.\n");
-
+  // Step 4: Validate vertex count (no new intersections, no missing points)
   if (!validate_vertex_count(arrangement, points.size(), points, verbose)) {
     return false;
   }
 
   // Step 5: Validate all faces are triangular and collect edges
+  // Reserve space: triangulation of n points has ~3n edges (Euler's formula)
   std::unordered_set<std::tuple<int, int>, TupleHash> edges_in_arrangement;
+  edges_in_arrangement.reserve(3 * points.size());
+
   if (!validate_all_faces_triangular(arrangement, idx_of,
                                        edges_in_arrangement, verbose)) {
     return false;
@@ -78,8 +83,9 @@ bool is_triangulation(const std::vector<Point> &points,
   }
 
   // Success
-  if (verbose)
-    fmt::print("Triangulation check complete: Valid triangulation\n");
+  if (verbose) {
+    fmt::print("Triangulation validation complete: Valid triangulation\n");
+  }
 
   return true;
 }
