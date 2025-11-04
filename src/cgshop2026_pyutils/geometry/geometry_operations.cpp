@@ -28,16 +28,6 @@ bool do_cross(const Segment2 &s1, const Segment2 &s2) {
   return false; // No intersection
 }
 
-std::optional<Point> intersection_point(const Segment2 &s1,
-                                        const Segment2 &s2) {
-  auto result = CGAL::intersection(s1, s2);
-  if (result) {
-    if (const Point *p = std::get_if<Point>(&*result)) {
-      return *p;
-    }
-  }
-  return std::nullopt;
-}
 
 /**
  * This function checks if the given set of edges forms a triangulation of the
@@ -350,40 +340,6 @@ compute_triangles(const std::vector<Point>& points,
   triangles.erase(std::unique(triangles.begin(), triangles.end()), triangles.end());
 
   return triangles;
-}
-
-// Compute convex hull and return the indices of the points on the hull
-std::vector<int64_t> compute_convex_hull(const std::vector<Point> &points) {
-  // Compute convex hull
-  std::vector<Point> hull;
-  CGAL::convex_hull_2(points.begin(), points.end(), std::back_inserter(hull));
-
-  // Find the indices of the points in the original vector
-  std::vector<int64_t> result;
-  for (const auto &p : hull) {
-    auto it = std::find(points.begin(), points.end(), p);
-    if (it != points.end()) {
-      result.push_back(std::distance(points.begin(), it));
-    } else {
-      throw std::runtime_error(
-          "Point on hull not found in original points list.");
-    }
-  }
-  return result;
-}
-
-std::optional<std::pair<int, int>>
-points_contain_duplicates(const std::vector<Point> &points) {
-  std::map<Point, std::size_t> unique_points;
-  std::size_t index = 0;
-  for (const auto &p : points) {
-    auto result = unique_points.try_emplace(p, index);
-    if (!result.second) {
-      return std::pair<int, int>{int(result.first->second), int(index)};
-    }
-    ++index;
-  }
-  return std::nullopt;
 }
 
 } // namespace cgshop2026

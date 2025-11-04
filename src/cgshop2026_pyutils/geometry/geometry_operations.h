@@ -14,12 +14,6 @@ namespace cgshop2026 {
 bool do_cross(const Segment2 &s1, const Segment2 &s2);
 
 /**
- * Compute the intersection point of two segments.
- * Returns std::nullopt if the segments don't intersect in a single point.
- */
-std::optional<Point> intersection_point(const Segment2 &s1, const Segment2 &s2);
-
-/**
  * This function checks if the given set of edges forms a triangulation of the
  * provided points. It uses the CGAL arrangement data structure to insert the
  * edges and verify the triangulation properties.
@@ -39,17 +33,5 @@ bool is_triangulation(const std::vector<Point> &points,
 std::vector<std::tuple<int, int, int>>
 compute_triangles(const std::vector<Point>& points,
                   const std::vector<std::tuple<int, int>>& edges);
-
-/**
- * Compute convex hull and return the indices of the points on the hull.
- */
-std::vector<int64_t> compute_convex_hull(const std::vector<Point> &points);
-
-/**
- * Check if a list of points contains duplicates.
- * Returns a pair of indices if duplicates are found, otherwise std::nullopt.
- */
-std::optional<std::pair<int, int>>
-points_contain_duplicates(const std::vector<Point> &points);
 
 } // namespace cgshop2026
