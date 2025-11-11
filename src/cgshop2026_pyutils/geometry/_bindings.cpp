@@ -5,6 +5,7 @@
 
 // Local headers
 #include "cgal_types.h"
+#include "cgal_utils.h"
 #include "geometry_operations.h"
 
 // Pybind11 module definitions
@@ -13,10 +14,34 @@ PYBIND11_MODULE(_bindings, m) {
   using namespace cgshop2026;
   m.doc() = "CGAL geometry bindings for CG:SHOP 2026";
 
+  // Exact numbers
+  py::class_<Kernel::FT>(m, "FieldNumber",
+                         "A container for exact numbers in CGAL.")
+      .def(py::init<long>())
+      .def(py::init<double>())
+      .def(py::init(&str_to_exact))
+      .def(py::self / Kernel::FT())
+      .def(py::self + Kernel::FT())
+      .def(py::self - Kernel::FT())
+      .def(py::self * Kernel::FT())
+      .def(py::self == Kernel::FT())
+      .def(py::self < Kernel::FT())
+      .def(py::self > Kernel::FT())
+      .def(py::self <= Kernel::FT())
+      .def(py::self >= Kernel::FT())
+      .def("__float__",
+           [](const Kernel::FT &ft) { return CGAL::to_double(ft); })
+      .def("__str__",
+           [](const Kernel::FT &x) {
+             return std::to_string(CGAL::to_double(x));
+           })
+      .def("exact", &to_rational_string);
+
   // Points
   py::class_<Point>(m, "Point", "A 2-dimensional point.")
       .def(py::init<long, long>())
       .def(py::init<double, double>())
+      .def(py::init<Kernel::FT, Kernel::FT>())
       .def("__add__",
            [](const Point &p1, const Point &p2) {
              // Addition is not defined in CGAL for points

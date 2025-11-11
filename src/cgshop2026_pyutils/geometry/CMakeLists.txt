@@ -6,6 +6,7 @@ find_package(fmt REQUIRED)
 
 pybind11_add_module(_bindings
     ./_bindings.cpp
+    ./cgal_utils.cpp
     ./geometry_operations.cpp
     ./triangulation_validation.cpp
 )

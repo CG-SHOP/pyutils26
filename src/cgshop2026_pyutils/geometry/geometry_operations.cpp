@@ -1,5 +1,6 @@
 #include "geometry_operations.h"
 #include "triangulation_validation.h"
+#include "cgal_utils.h"
 #include <CGAL/convex_hull_2.h>
 #include <algorithm>
 #include <array>

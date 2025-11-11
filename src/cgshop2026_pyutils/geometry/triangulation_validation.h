@@ -1,11 +1,14 @@
 #pragma once
 
 #include "cgal_types.h"
+#include "cgal_utils.h"
 #include <map>
 #include <optional>
 #include <tuple>
 #include <unordered_set>
 #include <vector>
+
+#include "integral_points.h"
 
 namespace cgshop2026 {
 
