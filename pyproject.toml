@@ -6,5 +6,12 @@ requires = [
     "skbuild-conan",
     "cmake>=3.23",
     "ninja",
-]
+
+[tool.pyright]
+ignore = ["src/cgshop2026_pyutils/geometry/draw.py", "src/cgshop2026_pyutils/visualize.py"]
+
+reportUnusedCallResult = false
+reportPrivateUsage = false
+reportImplicitStringConcatenation = false
+
 build-backend = "setuptools.build_meta"
