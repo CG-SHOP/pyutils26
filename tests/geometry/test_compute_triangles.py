@@ -7,8 +7,7 @@ including automatic convex hull edge addition.
 """
 
 import pytest
-from cgshop2026_pyutils.geometry import compute_triangles, Point
-
+from cgshop2026_pyutils.geometry import compute_triangles, Point, Edge
 
 class TestComputeTriangles:
     """Test suite for the compute_triangles function."""
@@ -16,7 +15,7 @@ class TestComputeTriangles:
     def test_simple_triangle(self):
         """Test that a simple triangle returns one triangle."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # No edges - convex hull forms the triangle
+        edges: list[Edge] = []  # No edges - convex hull forms the triangle
 
         result = compute_triangles(points, edges)
         expected = [(0, 1, 2)]  # Single triangle with sorted indices
@@ -82,8 +81,8 @@ class TestComputeTriangles:
 
     def test_empty_points_list(self):
         """Test behavior with empty points list."""
-        points = []
-        edges = []
+        points: list[Point] = []
+        edges: list[Edge] = []
 
         result = compute_triangles(points, edges)
         assert result == [], "Empty points should return empty triangles list"
@@ -91,7 +90,7 @@ class TestComputeTriangles:
     def test_single_point(self):
         """Test behavior with single point."""
         points = [Point(0, 0)]
-        edges = []
+        edges: list[Edge] = []
 
         result = compute_triangles(points, edges)
         assert result == [], "Single point should return empty triangles list"
@@ -99,7 +98,7 @@ class TestComputeTriangles:
     def test_two_points(self):
         """Test behavior with two points."""
         points = [Point(0, 0), Point(1, 0)]
-        edges = []
+        edges: list[Edge] = []
 
         result = compute_triangles(points, edges)
         assert result == [], "Two points should return empty triangles list"
@@ -107,7 +106,7 @@ class TestComputeTriangles:
     def test_collinear_points(self):
         """Test behavior with collinear points."""
         points = [Point(0, 0), Point(1, 0), Point(2, 0)]  # All on x-axis
-        edges = []
+        edges: list[Edge] = []
 
         result = compute_triangles(points, edges)
         # Collinear points don't form proper triangles
@@ -188,7 +187,7 @@ class TestComputeTriangles:
     def test_square_no_internal_edges(self):
         """Test square with no internal edges (should return empty)."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
-        edges = []  # No internal edges, only convex hull
+        edges: list[Edge] = []  # No internal edges, only convex hull
 
         result = compute_triangles(points, edges)
 
@@ -212,14 +211,14 @@ class TestComputeTriangles:
     def test_large_triangulation(self):
         """Test a larger triangulation."""
         # Create a 3x3 grid of points
-        points = []
+        points: list[Point] = []
         for i in range(3):
             for j in range(3):
                 points.append(Point(i, j))
 
         # Create a fan triangulation from center point (index 4)
         center_idx = 4  # Point(1, 1)
-        edges = []
+        edges: list[Edge] = []
         boundary_indices = [0, 1, 2, 3, 5, 6, 7, 8]  # All except center
         for idx in boundary_indices:
             edges.append((center_idx, idx))

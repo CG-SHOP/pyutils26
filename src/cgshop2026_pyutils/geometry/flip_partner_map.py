@@ -1,11 +1,10 @@
 from collections import defaultdict
-from ._bindings import compute_triangles, do_cross, Segment, Point, is_triangulation
+from ._bindings import compute_triangles, do_cross, Segment, Point, is_triangulation # pyright: ignore[reportMissingModuleSource]
+from .typing import Edge, Triangle
 
-
-def normalize_edge(v: int, w: int) -> tuple[int, int]:
+def normalize_edge(v: int, w: int) -> Edge:
     """Returns a tuple representing the edge in a consistent order (min, max)."""
     return (v, w) if v < w else (w, v)
-
 
 class FlipPartnerMap:
     """
@@ -24,13 +23,13 @@ class FlipPartnerMap:
         edges: set[tuple[int, int]],
         flip_map: dict[tuple[int, int], tuple[int, int]],
     ):
-        self.points = points
-        self.edges = edges
-        self.flip_map = flip_map
-        self.edge_to_triangles = defaultdict(list)
+        self.points: list[Point] = points
+        self.edges: set[Edge] = edges
+        self.flip_map: dict[Edge, Edge] = flip_map
+        self.edge_to_triangles: defaultdict[Edge, list[Triangle]] = defaultdict(list)
 
     @staticmethod
-    def build(points: list, edges: list[tuple[int, int]]) -> "FlipPartnerMap":
+    def build(points: list[Point], edges: list[tuple[int, int]]) -> "FlipPartnerMap":
         edge_ = {(min(u, v), max(u, v)) for u, v in edges}
         instance = FlipPartnerMap(points, edge_, {})
         instance._rebuild_flip_map()
@@ -52,7 +51,7 @@ class FlipPartnerMap:
         # 1. Collect the triangles each edge is incident to.
         self.edge_to_triangles = defaultdict(list)
         for tri in triangles:
-            edges = [(tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])]
+            edges: list[Edge] = [(tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])]
             for u, v in edges:
                 norm_edge = normalize_edge(u, v)
                 self.edges.add(norm_edge)
@@ -104,7 +103,7 @@ class FlipPartnerMap:
         if (u, v) not in self.flip_map:
             raise ValueError("Edge is not flippable")
         opp1, opp2 = self.flip_map[(u, v)]
-        conflicting = set()
+        conflicting: set[Edge] = set()
         for e in [(u, opp1), (v, opp1), (u, opp2), (v, opp2)]:
             if e[0] > e[1]:
                 e = (e[1], e[0])
@@ -126,7 +125,7 @@ class FlipPartnerMap:
         self.flip_map[new_edge] = old_edge
 
         # Update the triangles incident to the old edge
-        self.edge_to_triangles.pop(old_edge)
+        _ = self.edge_to_triangles.pop(old_edge)
 
         # Update triangles for the new edge
         new_tri_0 = (new_edge[0], new_edge[1], old_edge[0])
@@ -134,7 +133,7 @@ class FlipPartnerMap:
         self.edge_to_triangles[new_edge] = [new_tri_0, new_tri_1]
 
         # we need to replace the old triangle in the surrounding edges. This part is a bit ugly
-        def contains_old_edge(tri):
+        def contains_old_edge(tri: Triangle):
             return old_edge[0] in tri and old_edge[1] in tri
 
         e1 = normalize_edge(new_edge[0], w=old_edge[0])

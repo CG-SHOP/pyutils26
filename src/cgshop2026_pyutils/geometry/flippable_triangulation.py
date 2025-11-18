@@ -1,6 +1,8 @@
-from .flip_partner_map import FlipPartnerMap, normalize_edge
-from ._bindings import is_triangulation
+from typing import override
 
+from .flip_partner_map import FlipPartnerMap, normalize_edge
+from ._bindings import is_triangulation, Point  # pyright: ignore[reportMissingModuleSource]
+from .typing import Edge
 
 class FlippableTriangulation:
     """
@@ -11,10 +13,11 @@ class FlippableTriangulation:
 
     def __init__(self, flip_map: FlipPartnerMap):
         # Do not validate or build here to allow cheap copies/forks.
-        self._flip_map = flip_map
-        self._flip_queue = []
-        self._conflicting_edges = set()
+        self._flip_map: FlipPartnerMap = flip_map
+        self._flip_queue: list[Edge] = []
+        self._conflicting_edges: set[Edge] = set()
 
+    @override
     def __eq__(self, other: object) -> bool:
         """
         Checks if two triangulations are equal (same edges and same pending flips).
@@ -29,7 +32,7 @@ class FlippableTriangulation:
 
     @staticmethod
     def from_points_edges(
-        points: list, edges: list[tuple[int, int]]
+        points: list[Point], edges: list[tuple[int, int]]
     ) -> "FlippableTriangulation":
         """
         Validates input and builds the internal flip map.
@@ -82,7 +85,7 @@ class FlippableTriangulation:
         Commits all pending flips to the triangulation.
         """
         for edge in self._flip_queue:
-            self._flip_map.flip(edge)
+            _ = self._flip_map.flip(edge)
         self._flip_queue.clear()
         self._conflicting_edges.clear()
 

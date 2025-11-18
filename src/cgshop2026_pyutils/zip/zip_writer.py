@@ -1,4 +1,5 @@
-import zipfile
+from types import TracebackType
+from zipfile import ZipFile
 from pathlib import Path
 
 from ..schemas.instance import CGSHOP2026Instance
@@ -7,11 +8,11 @@ from ..schemas.solution import CGSHOP2026Solution
 
 class ZipWriter:
     def __init__(self, path: str | Path):
-        self._path = str(path)
+        self._path: str = str(path)
         if Path(self._path).exists():
             msg = f"File {self._path} already exists."
             raise FileExistsError(msg)
-        self._zip = zipfile.ZipFile(path, "w")
+        self._zip: ZipFile = ZipFile(path, "w")
 
     def add_instance(self, instance: CGSHOP2026Instance):
         self._zip.writestr(
@@ -29,6 +30,11 @@ class ZipWriter:
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+            self,
+            exc_type: BaseException | None,
+            exc_value: BaseException | None,
+            traceback: TracebackType | None
+    ) -> bool:
         self.close()
         return False

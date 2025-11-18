@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.patches import Polygon
-from ._bindings import Point
+from ._bindings import Point  # pyright: ignore[reportMissingModuleSource]
 
 from .flippable_triangulation import FlippableTriangulation
 

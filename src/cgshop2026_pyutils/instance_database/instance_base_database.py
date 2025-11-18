@@ -1,12 +1,10 @@
 import abc
-import typing
+from typing import Literal
+from collections.abc import Iterator
 from pathlib import Path
 
 from ..schemas.instance import CGSHOP2026Instance
-
-
-from ..io import read_instance
-
+from ..io import read_instance, FileLike
 
 class InstanceBaseDatabase(abc.ABC):
     """
@@ -22,10 +20,10 @@ class InstanceBaseDatabase(abc.ABC):
         :param enable_cache: Whether to enable caching of loaded instances. Caching can
                              consume a significant amount of memory.
         """
-        self._path = Path(path)
-        self._is_cache_enabled = enable_cache
+        self._path: Path = Path(path)
+        self._is_cache_enabled: bool = enable_cache
         self._cache: dict[str, CGSHOP2026Instance] = {}
-        self.extension = ".json"
+        self.extension: Literal['.json'] = ".json"
 
         if not self._path.exists():
             msg = f"The folder {self._path.resolve()} does not exist"
@@ -41,7 +39,7 @@ class InstanceBaseDatabase(abc.ABC):
         """Checks if the file follows the required instance file naming convention (i.e., ends with .json)."""
         return filename.endswith(self.extension)
 
-    def read(self, f) -> CGSHOP2026Instance:
+    def read(self, f: FileLike) -> CGSHOP2026Instance:
         """Reads an instance from a file."""
         return read_instance(f)
 
@@ -68,7 +66,7 @@ class InstanceBaseDatabase(abc.ABC):
         return filename.split(".")[0]
 
     @abc.abstractmethod
-    def __iter__(self) -> typing.Iterator[CGSHOP2026Instance]:
+    def __iter__(self) -> Iterator[CGSHOP2026Instance]:
         """
         Abstract method to iterate over all instances in the database.
         :return: An iterable of Cgshop2025Instance objects.

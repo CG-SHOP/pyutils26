@@ -1,24 +1,26 @@
 from pathlib import Path
-from zipfile import ZipFile
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from zipfile import ZipFile
 
 class ZipReaderError(Exception):
     pass
 
 
 class InvalidFileName(ZipReaderError):
-    def __init__(self, file_name):
-        self.file_name = file_name
+    def __init__(self, file_name: str):
+        self.file_name: str = file_name
         super().__init__(
             f"The ZIP archive contains the invalid file name: '{file_name}'!"
         )
 
 
 class FileTooLargeError(ZipReaderError):
-    def __init__(self, file_name, file_size, file_size_limit):
-        self.file_name = file_name
-        self.file_size = file_size
-        self.file_size_limit = file_size_limit
+    def __init__(self, file_name: str, file_size: int, file_size_limit: int):
+        self.file_name: str = file_name
+        self.file_size: int = file_size
+        self.file_size_limit: int = file_size_limit
         super().__init__(
             f"The ZIP archive contains the file '{self.file_name}' with a size "
             f"of {self.file_size / 1_000_000} MB (only {self.file_size_limit / 1_000_000} MB allowed)!"
@@ -26,9 +28,9 @@ class FileTooLargeError(ZipReaderError):
 
 
 class ZipTooLargeError(ZipReaderError):
-    def __init__(self, decompressed_size, decompressed_size_limit):
-        self.decompressed_size = decompressed_size
-        self.decompressed_size_limit = decompressed_size_limit
+    def __init__(self, decompressed_size: int, decompressed_size_limit: int):
+        self.decompressed_size: int = decompressed_size
+        self.decompressed_size_limit: int = decompressed_size_limit
         super().__init__(
             f"The ZIP archive has a total decompressed size of {self.decompressed_size/1_000_000} MB "
             f"(only {self.decompressed_size_limit / 1_000_000} MB allowed)!"
@@ -43,8 +45,8 @@ class NoSolutionsError(ZipReaderError):
 
 
 class InvalidJSONError(ZipReaderError):
-    def __init__(self, file_name, message):
-        self.file_name = file_name
+    def __init__(self, file_name: str, message: str):
+        self.file_name: str = file_name
         super().__init__(
             f"The ZIP archive contains the file '{file_name}'"
             f" which is not a valid JSON-encoded file: {message}!"
@@ -52,8 +54,8 @@ class InvalidJSONError(ZipReaderError):
 
 
 class InvalidEncodingError(ZipReaderError):
-    def __init__(self, file_name):
-        self.file_name = file_name
+    def __init__(self, file_name: str):
+        self.file_name: str = file_name
         super().__init__(
             f"File '{file_name}' in the ZIP uses an unrecognized character encoding; "
             f"please use UTF-8 instead."
@@ -61,7 +63,7 @@ class InvalidEncodingError(ZipReaderError):
 
 
 class InvalidZipError(ZipReaderError):
-    def __init__(self, message):
+    def __init__(self, message: str):
         super().__init__(
             f"The ZIP archive is corrupted and could not be decompressed: {message}!"
         )
@@ -73,15 +75,15 @@ class BadZipChecker:
     """
 
     def __init__(self, file_size_limit: int, zip_size_limit: int):
-        self.file_size_limit = file_size_limit
-        self.zip_size_limit = zip_size_limit
+        self.file_size_limit: int = file_size_limit
+        self.zip_size_limit: int = zip_size_limit
 
-    def _check_zip_size(self, zip_file):
+    def _check_zip_size(self, zip_file: ZipFile):
         zip_decompressed_size = sum(zi.file_size for zi in zip_file.infolist())
         if zip_decompressed_size > self.zip_size_limit:
             raise ZipTooLargeError(zip_decompressed_size, self.zip_size_limit)
 
-    def _is_file_name_okay(self, name):
+    def _is_file_name_okay(self, name: str):
         return name[0] != "/" and not Path(name).is_absolute() and ".." not in name
 
     def _check_file_names(self, f: ZipFile):
@@ -96,13 +98,13 @@ class BadZipChecker:
                     info.filename, info.file_size, self.file_size_limit
                 )
 
-    def _check_crc(self, zip_file):
+    def _check_crc(self, zip_file: ZipFile):
         bad_filename = zip_file.testzip()
         if bad_filename is not None:
             msg = f"{bad_filename} is corrupted (CRC checksum error)!"
             raise InvalidZipError(msg)
 
-    def __call__(self, zip_file):
+    def __call__(self, zip_file: ZipFile):
         self._check_file_names(zip_file)
         self._check_decompressed_sizes(zip_file)
         self._check_zip_size(zip_file)

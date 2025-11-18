@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Create a matplotlib plot for a CGSHOP 2026 instance using only basic matplotlib functionality.
 
@@ -15,6 +16,7 @@ Usage:
 import math
 
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 from .schemas import CGSHOP2026Instance
 
 
@@ -31,7 +33,7 @@ def _square_limits(xs: list[int], ys: list[int], pad_ratio: float = 0.05):
     return cx - half - pad, cx + half + pad, cy - half - pad, cy + half + pad
 
 
-def _style_axes(ax, title: str | None = None):
+def _style_axes(ax: Axes, title: str | None = None):
     ax.set_aspect("equal", adjustable="box")
     ax.grid(True, alpha=0.3, linewidth=0.5)
     ax.tick_params(labelsize=6)
@@ -76,5 +78,5 @@ def create_instance_plot(inst: CGSHOP2026Instance, per_row: int = 2):
         _style_axes(ax, title=f"Triangulation #{t_idx}")
 
     fig.suptitle(f"CGSHOP2026 Instance: {inst.instance_uid}", fontsize=11, y=0.995)
-    fig.tight_layout(rect=[0, 0, 1, 0.99]) # type: ignore
+    fig.tight_layout(rect=[0, 0, 1, 0.99])  # pyright: ignore[reportArgumentType]
     return fig

@@ -1,5 +1,6 @@
 import os
-import typing
+from typing import override
+from collections.abc import Iterator
 from pathlib import Path
 
 from ..schemas.instance import CGSHOP2026Instance
@@ -36,17 +37,19 @@ class InstanceFileDatabase(InstanceBaseDatabase):
                     path = Path(root) / file
                     yield path
 
-    def _find_path(self, name):
+    def _find_path(self, name: str):
         for instance_path in self._iterate_paths():
             if self._filename_fits_name(os.path.split(instance_path)[-1], name):
                 return instance_path
         msg = f"Did not find a suitable file for {name} in {self._path}"
         raise KeyError(msg)
 
+    @override
     def _extract_instance_name_from_path(self, path: Path) -> str:
         return path.name.split(".")[0]
 
-    def __iter__(self) -> typing.Iterator[CGSHOP2026Instance]:
+    @override
+    def __iter__(self) -> Iterator[CGSHOP2026Instance]:
         """
         Iterate over all instance files.
         :return: Instance objects
@@ -58,13 +61,14 @@ class InstanceFileDatabase(InstanceBaseDatabase):
             else:
                 yield self._cache_and_return(self.read(instance_path))
 
+    @override
     def __getitem__(self, name: str) -> CGSHOP2026Instance:
         """
         Returns the instance of a specific name or throws an KeyError.
         :param name: Name of the instance.
         :return:
         """
-        if name is self._cache:
+        if name in self._cache:
             return self._cache[name]
         path = self._find_path(name)
         return self._cache_and_return(self.read(path))

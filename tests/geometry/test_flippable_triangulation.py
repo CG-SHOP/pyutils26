@@ -7,8 +7,7 @@ proper validation and error handling.
 """
 
 import pytest
-from cgshop2026_pyutils.geometry import FlippableTriangulation, Point
-
+from cgshop2026_pyutils.geometry import FlippableTriangulation, Point, Edge
 
 class TestFlippableTriangulation:
     """Test suite for the FlippableTriangulation class."""
@@ -32,7 +31,7 @@ class TestFlippableTriangulation:
     def test_from_points_edges_invalid_triangulation_raises_error(self):
         """Test that invalid triangulation raises ValueError."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
-        edges = []  # No internal edges - not a valid triangulation for square
+        edges: list[Edge] = []  # No internal edges - not a valid triangulation for square
 
         with pytest.raises(ValueError, match="do not form a valid triangulation"):
             FlippableTriangulation.from_points_edges(points, edges)
@@ -40,7 +39,7 @@ class TestFlippableTriangulation:
     def test_from_points_edges_triangle_valid(self):
         """Test that a simple triangle is valid."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # Convex hull forms valid triangle
+        edges: list[Edge] = []  # Convex hull forms valid triangle
 
         triangulation = FlippableTriangulation.from_points_edges(points, edges)
 
@@ -137,7 +136,7 @@ class TestFlippableTriangulation:
     def test_add_flip_non_flippable_edge_raises_error(self):
         """Test that adding non-flippable edge raises error."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # Triangle - no flippable edges
+        edges: list[Edge] = []  # Triangle - no flippable edges
 
         triangulation = FlippableTriangulation.from_points_edges(points, edges)
 
@@ -330,7 +329,7 @@ class TestFlippableTriangulation:
     def test_triangulation_with_no_flippable_edges(self):
         """Test triangulation where no edges can be flipped."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # Simple triangle
+        edges: list[Edge] = []  # Simple triangle
 
         triangulation = FlippableTriangulation.from_points_edges(points, edges)
 
@@ -346,7 +345,7 @@ class TestFlippableTriangulation:
         """Test various edge cases and boundary conditions."""
         # Minimal valid triangulation
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []
+        edges: list[Edge] = []
 
         triangulation = FlippableTriangulation.from_points_edges(points, edges)
 
@@ -403,7 +402,7 @@ class TestFlippableTriangulation:
     def test_error_messages_are_descriptive(self):
         """Test that error messages provide helpful information."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []
+        edges: list[Edge] = []
 
         triangulation = FlippableTriangulation.from_points_edges(points, edges)
 
@@ -417,7 +416,7 @@ class TestFlippableTriangulation:
 
         # Test invalid triangulation error
         invalid_points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
-        invalid_edges = []  # Square without diagonal
+        invalid_edges: list[Edge] = []  # Square without diagonal
 
         try:
             FlippableTriangulation.from_points_edges(invalid_points, invalid_edges)
@@ -510,7 +509,7 @@ class TestFlippableTriangulation:
     def test_possible_flips_triangle_no_flips(self):
         """Test that triangle has no possible flips."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # Simple triangle
+        edges: list[Edge] = []  # Simple triangle
 
         triangulation = FlippableTriangulation.from_points_edges(points, edges)
 
@@ -786,7 +785,7 @@ class TestFlippableTriangulation:
         # Test a case where points are definitely different enough to matter
         # Use different point count to ensure inequality
         points3 = [Point(0, 0), Point(1, 0), Point(0, 1)]  # Triangle
-        edges3 = []
+        edges3: list[Edge] = []
 
         triangulation3 = FlippableTriangulation.from_points_edges(points3, edges3)
 
@@ -797,7 +796,7 @@ class TestFlippableTriangulation:
     def test_eq_empty_triangulations(self):
         """Test equality of minimal triangulations (triangles)."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # Triangle needs no internal edges
+        edges: list[Edge] = []  # Triangle needs no internal edges
 
         triangulation1 = FlippableTriangulation.from_points_edges(points, edges)
         triangulation2 = FlippableTriangulation.from_points_edges(points, edges)

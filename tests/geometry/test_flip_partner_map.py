@@ -7,8 +7,7 @@ in triangulated point sets.
 """
 
 import pytest
-from cgshop2026_pyutils.geometry import FlipPartnerMap, Point
-
+from cgshop2026_pyutils.geometry import FlipPartnerMap, Point, Edge
 
 class TestFlipPartnerMap:
     """Test suite for the FlipPartnerMap class."""
@@ -27,7 +26,7 @@ class TestFlipPartnerMap:
     def test_triangle_no_flippable_edges(self):
         """Test that a simple triangle has no flippable edges."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # Convex hull forms the triangle
+        edges: list[Edge] = []  # Convex hull forms the triangle
 
         flip_map = FlipPartnerMap.build(points, edges)
 
@@ -91,7 +90,7 @@ class TestFlipPartnerMap:
     def test_flip_nonflippable_edge_raises_error(self):
         """Test that flipping a non-flippable edge raises an error."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []  # Simple triangle
+        edges: list[Edge] = []  # Simple triangle
 
         flip_map = FlipPartnerMap.build(points, edges)
 
@@ -118,7 +117,7 @@ class TestFlipPartnerMap:
     def test_conflicting_flips_nonflippable_edge_raises_error(self):
         """Test that getting conflicting flips for non-flippable edge raises error."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []
+        edges: list[Edge] = []
 
         flip_map = FlipPartnerMap.build(points, edges)
 
@@ -188,8 +187,8 @@ class TestFlipPartnerMap:
 
     def test_empty_triangulation(self):
         """Test behavior with empty or minimal input."""
-        points = []
-        edges = []
+        points: list[Point] = []
+        edges: list[Edge] = []
 
         flip_map = FlipPartnerMap.build(points, edges)
 
@@ -200,7 +199,7 @@ class TestFlipPartnerMap:
     def test_single_point(self):
         """Test behavior with single point."""
         points = [Point(0, 0)]
-        edges = []
+        edges: list[Edge] = []
 
         flip_map = FlipPartnerMap.build(points, edges)
 
@@ -211,7 +210,7 @@ class TestFlipPartnerMap:
     def test_collinear_points(self):
         """Test behavior with collinear points."""
         points = [Point(0, 0), Point(1, 0), Point(2, 0)]
-        edges = []
+        edges: list[Edge] = []
 
         flip_map = FlipPartnerMap.build(points, edges)
 
@@ -277,14 +276,14 @@ class TestFlipPartnerMap:
     def test_large_triangulation(self):
         """Test with a larger triangulation."""
         # Create a 3x3 grid
-        points = []
+        points: list[Point] = []
         for i in range(3):
             for j in range(3):
                 points.append(Point(i, j))
 
         # Create fan triangulation from center
         center_idx = 4  # Point(1, 1)
-        edges = []
+        edges: list[Edge] = []
         boundary_indices = [0, 1, 2, 3, 5, 6, 7, 8]
         for idx in boundary_indices:
             edges.append((center_idx, idx))
