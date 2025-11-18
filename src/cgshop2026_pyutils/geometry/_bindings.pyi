@@ -13,7 +13,6 @@ class FieldNumber:
     def __init__(self, value: float) -> None: ...
     @overload
     def __init__(self, value: str) -> None: ...
-
     def __truediv__(self, other: Self) -> Self: ...
     def __add__(self, other: Self) -> Self: ...
     def __sub__(self, other: Self) -> Self: ...
@@ -38,7 +37,6 @@ class Point:
     def __init__(self, x: float, y: float) -> None: ...
     @overload
     def __init__(self, x: FieldNumber, y: FieldNumber) -> None: ...
-
     def __add__(self, other: Point) -> Point: ...
     def __sub__(self, other: Point) -> Point: ...
     @override
@@ -62,9 +60,7 @@ class Segment:
     def __str__(self) -> str: ...
 
 def is_triangulation(
-    points: Sequence[Point],
-    edges: Sequence[tuple[int, int]],
-    verbose: bool = False
+    points: Sequence[Point], edges: Sequence[tuple[int, int]], verbose: bool = False
 ) -> bool:
     """
     Check if a set of edges forms a triangulation of the given points.
@@ -83,8 +79,7 @@ def is_triangulation(
     ...
 
 def compute_triangles(
-    points: Sequence[Point],
-    edges: Sequence[tuple[int, int]]
+    points: Sequence[Point], edges: Sequence[tuple[int, int]]
 ) -> list[tuple[int, int, int]]:
     """
     Compute all triangles formed by the given set of points and edges.

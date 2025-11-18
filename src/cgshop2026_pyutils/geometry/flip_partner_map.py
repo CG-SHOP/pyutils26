@@ -1,10 +1,12 @@
 from collections import defaultdict
-from ._bindings import compute_triangles, do_cross, Segment, Point, is_triangulation # pyright: ignore[reportMissingModuleSource]
+from ._bindings import compute_triangles, do_cross, Segment, Point, is_triangulation  # pyright: ignore[reportMissingModuleSource]
 from .typing import Edge, Triangle
+
 
 def normalize_edge(v: int, w: int) -> Edge:
     """Returns a tuple representing the edge in a consistent order (min, max)."""
     return (v, w) if v < w else (w, v)
+
 
 class FlipPartnerMap:
     """
@@ -40,7 +42,7 @@ class FlipPartnerMap:
         Computes the triangles formed by the current edges in the flip map.
         """
         return compute_triangles(self.points, [edge for edge in self.edges])
-    
+
     def _rebuild_flip_map(self):
         """
         Rebuilds the flip map by recomputing the triangles and their incident edges.
@@ -201,6 +203,8 @@ def expand_edges_by_convex_hull_edges(
         A new list of edges that includes the original edges and the convex hull edges.
     """
     if not is_triangulation(points, edges):
-        raise ValueError("The provided edges do not form a valid triangulation of the given points.")
+        raise ValueError(
+            "The provided edges do not form a valid triangulation of the given points."
+        )
     flip_partner_map = FlipPartnerMap.build(points, edges)
     return list(flip_partner_map.edges)

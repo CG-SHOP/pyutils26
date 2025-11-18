@@ -31,10 +31,10 @@ class ZipWriter:
         return self
 
     def __exit__(
-            self,
-            exc_type: BaseException | None,
-            exc_value: BaseException | None,
-            traceback: TracebackType | None
+        self,
+        exc_type: BaseException | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> bool:
         self.close()
         return False

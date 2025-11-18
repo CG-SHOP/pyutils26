@@ -1,4 +1,11 @@
-from ._bindings import is_triangulation, compute_triangles, Point, do_cross, Segment, FieldNumber   # pyright: ignore[reportMissingModuleSource]
+from ._bindings import (
+    is_triangulation,
+    compute_triangles,
+    Point,
+    do_cross,
+    Segment,
+    FieldNumber,
+)  # pyright: ignore[reportMissingModuleSource]
 from .flip_partner_map import FlipPartnerMap
 
 from .flippable_triangulation import FlippableTriangulation
@@ -21,5 +28,5 @@ __all__ = [
     "Edge",
     "ParallelFlipSequence",
     "ParallelFlips",
-    "Triangle"
+    "Triangle",
 ]

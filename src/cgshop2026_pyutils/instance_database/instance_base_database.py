@@ -6,6 +6,7 @@ from pathlib import Path
 from ..schemas.instance import CGSHOP2026Instance
 from ..io import read_instance, FileLike
 
+
 class InstanceBaseDatabase(abc.ABC):
     """
     Abstract base class (ABC) for accessing instance databases.
@@ -23,7 +24,7 @@ class InstanceBaseDatabase(abc.ABC):
         self._path: Path = Path(path)
         self._is_cache_enabled: bool = enable_cache
         self._cache: dict[str, CGSHOP2026Instance] = {}
-        self.extension: Literal['.json'] = ".json"
+        self.extension: Literal[".json"] = ".json"
 
         if not self._path.exists():
             msg = f"The folder {self._path.resolve()} does not exist"

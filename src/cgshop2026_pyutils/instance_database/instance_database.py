@@ -24,7 +24,9 @@ class InstanceDatabase:
                      NAME.instance.json.
         :param enable_cache: Whether to cache the loaded instances, which can consume significant memory.
         """
-        self._inner_database: InstanceDB = self._guess_database_class(path, enable_cache)
+        self._inner_database: InstanceDB = self._guess_database_class(
+            path, enable_cache
+        )
 
     def _guess_database_class(self, path: str, enable_cache: bool) -> InstanceDB:
         """

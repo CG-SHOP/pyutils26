@@ -9,6 +9,7 @@ including automatic convex hull edge addition.
 import pytest
 from cgshop2026_pyutils.geometry import compute_triangles, Point, Edge
 
+
 class TestComputeTriangles:
     """Test suite for the compute_triangles function."""
 

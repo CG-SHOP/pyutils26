@@ -9,6 +9,7 @@ in triangulated point sets.
 import pytest
 from cgshop2026_pyutils.geometry import FlipPartnerMap, Point, Edge
 
+
 class TestFlipPartnerMap:
     """Test suite for the FlipPartnerMap class."""
 
@@ -95,9 +96,7 @@ class TestFlipPartnerMap:
         flip_map = FlipPartnerMap.build(points, edges)
 
         # Try to flip a boundary edge (should fail)
-        with pytest.raises(
-            ValueError, match="Edge is not flippable"
-        ):
+        with pytest.raises(ValueError, match="Edge is not flippable"):
             flip_map.flip((0, 1))
 
     def test_conflicting_flips_square(self):

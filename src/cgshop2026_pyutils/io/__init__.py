@@ -5,30 +5,28 @@ from pathlib import Path
 from typing import TypeVar, Callable, IO, Any
 import functools
 
-R = TypeVar('R')
+R = TypeVar("R")
 GenericIO = IO[str] | IO[bytes]
 FileLike = str | Path | GenericIO
 
-def open_file(
-    func: Callable[..., R]
-) -> Callable[..., R]:
+
+def open_file(func: Callable[..., R]) -> Callable[..., R]:
     """
     Decorator to open a file before calling the function and close it afterwards,
     if passed as string or pathlib.Path.
     """
+
     @functools.wraps(func)
-    def wrapper(
-        file: FileLike,
-        *args: Any,
-        **kwargs: Any
-    ) -> R:
+    def wrapper(file: FileLike, *args: Any, **kwargs: Any) -> R:
         if isinstance(file, str):
             file = Path(file)
         if isinstance(file, Path):
             with file.open() as f:
                 return func(f, *args, **kwargs)
         return func(file, *args, **kwargs)
+
     return wrapper
+
 
 @open_file
 def read_instance(file: GenericIO) -> CGSHOP2026Instance:

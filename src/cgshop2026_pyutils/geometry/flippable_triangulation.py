@@ -4,6 +4,7 @@ from .flip_partner_map import FlipPartnerMap, normalize_edge
 from ._bindings import is_triangulation, Point  # pyright: ignore[reportMissingModuleSource]
 from .typing import Edge
 
+
 class FlippableTriangulation:
     """
     This class represents a triangulation that supports edge flips.
@@ -50,7 +51,7 @@ class FlippableTriangulation:
         Creates a copy of the triangulation that can be modified independently.
         """
         return FlippableTriangulation(self._flip_map.deep_copy())
-    
+
     def get_edges(self) -> list[tuple[int, int]]:
         """
         Returns the list of edges in the triangulation.

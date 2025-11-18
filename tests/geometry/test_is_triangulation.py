@@ -9,6 +9,7 @@ intersecting edges, and malformed input.
 import pytest
 from cgshop2026_pyutils.geometry import is_triangulation, Point, Edge
 
+
 class TestIsTriangulation:
     """Test suite for the is_triangulation function."""
 

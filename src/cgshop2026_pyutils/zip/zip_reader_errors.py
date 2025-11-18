@@ -1,8 +1,10 @@
 from pathlib import Path
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from zipfile import ZipFile
+
 
 class ZipReaderError(Exception):
     pass
@@ -32,7 +34,7 @@ class ZipTooLargeError(ZipReaderError):
         self.decompressed_size: int = decompressed_size
         self.decompressed_size_limit: int = decompressed_size_limit
         super().__init__(
-            f"The ZIP archive has a total decompressed size of {self.decompressed_size/1_000_000} MB "
+            f"The ZIP archive has a total decompressed size of {self.decompressed_size / 1_000_000} MB "
             f"(only {self.decompressed_size_limit / 1_000_000} MB allowed)!"
         )
 

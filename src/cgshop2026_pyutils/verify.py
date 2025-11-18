@@ -3,7 +3,10 @@ from .geometry import FlippableTriangulation, Point
 
 
 def check_for_errors(
-    instance: CGSHOP2026Instance, solution: CGSHOP2026Solution, full_recompute: bool = False, verbose: bool = False
+    instance: CGSHOP2026Instance,
+    solution: CGSHOP2026Solution,
+    full_recompute: bool = False,
+    verbose: bool = False,
 ) -> list[str]:
     """
     Verifies the given solution against the provided instance and returns a list of error messages if any issues are found.
@@ -15,7 +18,9 @@ def check_for_errors(
     ]
     for tri, flip_sequence in zip(triangulations, solution.flips):
         if verbose:
-            print(f"Verifying flips for triangulation with {len(tri.get_edges())} edges.")
+            print(
+                f"Verifying flips for triangulation with {len(tri.get_edges())} edges."
+            )
         for parallel_flips in flip_sequence:
             for edge in parallel_flips:
                 try:

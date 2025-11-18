@@ -68,9 +68,9 @@ class ZipSolutionIterator:
     def _is_solution_filename(self, name: str) -> bool:
         """Checks if the file is a valid solution file based on its extension and visibility."""
         # Check extension and skip hidden files/directories
-        return any(name.lower().endswith(extension) for extension in self._solution_extensions) and not any(
-            self._is_hidden_folder_name(s) for s in name.split("/")
-        )
+        return any(
+            name.lower().endswith(extension) for extension in self._solution_extensions
+        ) and not any(self._is_hidden_folder_name(s) for s in name.split("/"))
 
     def _iterate_solution_filenames(self, zip_file: ZipFile) -> Iterator[str]:
         """Yields filenames that match the allowed solution extensions."""
@@ -106,7 +106,7 @@ class ZipSolutionIterator:
                             yield solution
                         except ValidationError as e:
                             msg = f"Error in file '{file_name}': {e}"
-                            raise BadSolutionFile(msg,file_name=str(file_name)) from e
+                            raise BadSolutionFile(msg, file_name=str(file_name)) from e
         except BadZipFile as e:
             msg = f"Invalid ZIP file: {e}"
             raise InvalidZipError(msg) from e

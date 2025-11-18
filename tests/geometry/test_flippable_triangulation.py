@@ -9,6 +9,7 @@ proper validation and error handling.
 import pytest
 from cgshop2026_pyutils.geometry import FlippableTriangulation, Point, Edge
 
+
 class TestFlippableTriangulation:
     """Test suite for the FlippableTriangulation class."""
 
@@ -31,7 +32,9 @@ class TestFlippableTriangulation:
     def test_from_points_edges_invalid_triangulation_raises_error(self):
         """Test that invalid triangulation raises ValueError."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
-        edges: list[Edge] = []  # No internal edges - not a valid triangulation for square
+        edges: list[
+            Edge
+        ] = []  # No internal edges - not a valid triangulation for square
 
         with pytest.raises(ValueError, match="do not form a valid triangulation"):
             FlippableTriangulation.from_points_edges(points, edges)
@@ -105,16 +108,18 @@ class TestFlippableTriangulation:
 
         tri = FlippableTriangulation.from_points_edges(points, edges)
         # Edge should be flippable initially
-        assert (0,3) in tri.possible_flips()
-        partner_direct = tri._flip_map.get_flip_partner((0,3))
-        partner_via_method = tri.get_flip_partner((0,3))
-        assert partner_direct == partner_via_method, "Convenience method should match underlying map"
+        assert (0, 3) in tri.possible_flips()
+        partner_direct = tri._flip_map.get_flip_partner((0, 3))
+        partner_via_method = tri.get_flip_partner((0, 3))
+        assert partner_direct == partner_via_method, (
+            "Convenience method should match underlying map"
+        )
         # Normalize reversed order argument
-        partner_reversed = tri.get_flip_partner((3,0))
+        partner_reversed = tri.get_flip_partner((3, 0))
         assert partner_reversed == partner_direct, "Method should normalize edge order"
         # After adding to queue still accessible
-        tri.add_flip((0,3))
-        assert tri.get_flip_partner((0,3)) == partner_direct
+        tri.add_flip((0, 3))
+        assert tri.get_flip_partner((0, 3)) == partner_direct
 
     def test_add_flip_edge_ordering_normalized(self):
         """Test that edge ordering is normalized when adding flips."""
