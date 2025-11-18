@@ -6,6 +6,7 @@ requires = [
     "skbuild-conan",
     "cmake>=3.23",
     "ninja",
+]
 build-backend = "setuptools.build_meta"
 
 [tool.pyright]
