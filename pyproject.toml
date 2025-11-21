@@ -8,3 +8,10 @@ requires = [
     "ninja",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.pyright]
+ignore = ["src/cgshop2026_pyutils/geometry/draw.py", "src/cgshop2026_pyutils/visualize.py"]
+
+reportUnusedCallResult = false
+reportPrivateUsage = false
+reportImplicitStringConcatenation = false

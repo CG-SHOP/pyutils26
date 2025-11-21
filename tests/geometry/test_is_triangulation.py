@@ -7,7 +7,7 @@ intersecting edges, and malformed input.
 """
 
 import pytest
-from cgshop2026_pyutils.geometry import is_triangulation, Point
+from cgshop2026_pyutils.geometry import is_triangulation, Point, Edge
 
 
 class TestIsTriangulation:
@@ -17,7 +17,7 @@ class TestIsTriangulation:
         """Test that a simple triangle is correctly identified as a triangulation."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
         # No edges needed - convex hull forms the triangle automatically
-        edges = []
+        edges: list[Edge] = []
         assert is_triangulation(points, edges), (
             "Simple triangle should be a valid triangulation"
         )
@@ -59,7 +59,7 @@ class TestIsTriangulation:
     def test_invalid_square_no_diagonal(self):
         """Test that a square without diagonal is not a triangulation."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1)]
-        edges = []  # No internal edges, only convex hull
+        edges: list[Edge] = []  # No internal edges, only convex hull
         assert not is_triangulation(points, edges), (
             "Square without diagonal should not be a triangulation"
         )
@@ -123,7 +123,7 @@ class TestIsTriangulation:
     def test_collinear_points(self):
         """Test triangulation with collinear points."""
         points = [Point(0, 0), Point(1, 0), Point(2, 0)]  # All on x-axis
-        edges = []
+        edges: list[Edge] = []
         # Collinear points cannot form a proper triangulation (degenerate)
         # The function should handle this gracefully
         result = is_triangulation(points, edges)
@@ -156,7 +156,7 @@ class TestIsTriangulation:
             Point(0, 1),
             Point(0, 0),
         ]  # Last point is duplicate
-        edges = []
+        edges: list[Edge] = []
         assert not is_triangulation(points, edges), (
             "Duplicate points should not create valid triangulation"
         )
@@ -179,8 +179,8 @@ class TestIsTriangulation:
 
     def test_empty_points_list(self):
         """Test behavior with empty points list."""
-        points = []
-        edges = []
+        points: list[Point] = []
+        edges: list[Edge] = []
 
         # Empty point set is a valid degenerate triangulation
         result = is_triangulation(points, edges)
@@ -189,7 +189,7 @@ class TestIsTriangulation:
     def test_single_point(self):
         """Test behavior with single point."""
         points = [Point(0, 0)]
-        edges = []
+        edges: list[Edge] = []
 
         # Single point cannot form a triangulation
         result = is_triangulation(points, edges)
@@ -198,7 +198,7 @@ class TestIsTriangulation:
     def test_two_points(self):
         """Test behavior with two points."""
         points = [Point(0, 0), Point(1, 0)]
-        edges = []
+        edges: list[Edge] = []
 
         # Two points form a degenerate but valid triangulation
         result = is_triangulation(points, edges)
@@ -251,7 +251,7 @@ class TestIsTriangulation:
         ]
 
         # No internal edges - this creates a single pentagonal face
-        edges = []
+        edges: list[Edge] = []
 
         assert not is_triangulation(points, edges), (
             "Pentagon without triangulation should be invalid"
@@ -297,14 +297,14 @@ class TestIsTriangulation:
     def test_large_triangulation_valid(self):
         """Test a larger valid triangulation."""
         # Create a grid of points
-        points = []
+        points: list[Point] = []
         for i in range(3):
             for j in range(3):
                 points.append(Point(i, j))
 
         # Create a fan triangulation from center point
         center_idx = 4  # Point(1, 1) is at index 4
-        edges = []
+        edges: list[Edge] = []
 
         # Connect center to all boundary points
         boundary_indices = [0, 1, 2, 3, 5, 6, 7, 8]  # All except center
@@ -318,7 +318,7 @@ class TestIsTriangulation:
     def test_empty_edges_triangle_valid(self):
         """Test that empty edges list works for triangular point sets."""
         points = [Point(0, 0), Point(3, 0), Point(1, 2)]
-        edges = []  # No edges - convex hull will be added automatically
+        edges: list[Edge] = []  # No edges - convex hull will be added automatically
 
         assert is_triangulation(points, edges), (
             "Triangle with empty edges should be valid"
@@ -337,7 +337,7 @@ class TestIsTriangulation:
     def test_verbose_flag_functionality(self):
         """Test that verbose flag can be set and function still works correctly."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []
+        edges: list[Edge] = []
 
         # Test with verbose=False (default)
         result_quiet = is_triangulation(points, edges)
@@ -355,7 +355,7 @@ class TestIsTriangulation:
     def test_verbose_parameter_types(self):
         """Test that verbose parameter accepts different ways of being specified."""
         points = [Point(0, 0), Point(1, 0), Point(0, 1)]
-        edges = []
+        edges: list[Edge] = []
 
         # Test with keyword argument
         result1 = is_triangulation(points, edges, verbose=False)

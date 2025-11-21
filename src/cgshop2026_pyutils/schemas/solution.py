@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Any
 from pydantic import BaseModel, Field, NonNegativeInt, computed_field
 
 # An edge flip is represented as a tuple of two vertex indices.
@@ -26,7 +26,7 @@ class CGSHOP2026Solution(BaseModel):
         description="For each triangulation in the instance, a sequence of parallel flip sets that lead to a common triangulation.",
     )
 
-    meta: dict = Field(
+    meta: dict[str, Any] = Field(
         default_factory=dict,
         description="Optional metadata about the solution, e.g., the name of the algorithm used to compute it.",
     )

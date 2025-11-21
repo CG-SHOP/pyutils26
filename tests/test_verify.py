@@ -10,8 +10,8 @@ def test_instance_1():
     triang_3 = [(0, 5), (1, 4), (1, 5), (1, 3), (2, 4), (3, 4), (3, 5)]
     instance = CGSHOP2026Instance(
         instance_uid="test_instance_1",
-        points_x=[x for x, y in points],
-        points_y=[y for x, y in points],
+        points_x=[x for x, _ in points],
+        points_y=[y for _, y in points],
         triangulations=[triang_1, triang_2, triang_3],
     )
     for triang in instance.triangulations:

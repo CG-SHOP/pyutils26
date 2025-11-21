@@ -4,7 +4,8 @@ in it. It is designed to be robust and include basic security features.
 """
 
 from os import PathLike
-from typing import BinaryIO, Iterator, Union
+from collections.abc import Iterator
+from typing import BinaryIO, Any, Sequence, override
 from zipfile import BadZipFile, ZipFile
 
 from pydantic import ValidationError
@@ -24,9 +25,10 @@ class BadSolutionFile(Exception):
 
     def __init__(self, msg: str, file_name: str):
         super().__init__(msg)
-        self.file_name = file_name
+        self.file_name: str = file_name
 
-    def __str__(self):
+    @override
+    def __str__(self) -> str:
         return self.args[0]
 
 
@@ -44,16 +46,16 @@ class ZipSolutionIterator:
 
     def __init__(
         self,
-        path_or_file: Union[BinaryIO, str, PathLike],
+        path_or_file: BinaryIO | str | PathLike[str],
         file_size_limit: int = 250 * 1_000_000,  # 250 MB file size limit
         zip_size_limit: int = 2_000 * 1_000_000,  # 2 GB zip size limit
-        solution_extensions=(".solution.json", ".sol.json"),
+        solution_extensions: Sequence[str] = (".solution.json", ".sol.json"),
     ):
-        self.path = path_or_file
-        self._checker = BadZipChecker(
+        self.path: BinaryIO | str | PathLike[str] = path_or_file
+        self._checker: BadZipChecker = BadZipChecker(
             file_size_limit=file_size_limit, zip_size_limit=zip_size_limit
         )
-        self._solution_extensions = solution_extensions
+        self._solution_extensions: Sequence[str] = list(solution_extensions)
 
     def _check_if_bad_zip(self, zip_file: ZipFile):
         """Checks the validity and security of the zip file using the BadZipChecker."""
@@ -66,9 +68,9 @@ class ZipSolutionIterator:
     def _is_solution_filename(self, name: str) -> bool:
         """Checks if the file is a valid solution file based on its extension and visibility."""
         # Check extension and skip hidden files/directories
-        return any(name.lower().endswith(extension) for extension in self._solution_extensions) and not any(
-            self._is_hidden_folder_name(s) for s in name.split("/")
-        )
+        return any(
+            name.lower().endswith(extension) for extension in self._solution_extensions
+        ) and not any(self._is_hidden_folder_name(s) for s in name.split("/"))
 
     def _iterate_solution_filenames(self, zip_file: ZipFile) -> Iterator[str]:
         """Yields filenames that match the allowed solution extensions."""
@@ -90,7 +92,7 @@ class ZipSolutionIterator:
             with ZipFile(self.path) as zip_file:
                 self._check_if_bad_zip(zip_file)
                 for file_name in self._iterate_solution_filenames(zip_file):
-                    meta = {
+                    meta: dict[str, Any] = {
                         "zip_info": {
                             "zip_file": zip_file.filename,
                             "file_in_zip": file_name,
@@ -104,7 +106,7 @@ class ZipSolutionIterator:
                             yield solution
                         except ValidationError as e:
                             msg = f"Error in file '{file_name}': {e}"
-                            raise BadSolutionFile(msg,file_name=str(file_name)) from e
+                            raise BadSolutionFile(msg, file_name=str(file_name)) from e
         except BadZipFile as e:
             msg = f"Invalid ZIP file: {e}"
             raise InvalidZipError(msg) from e

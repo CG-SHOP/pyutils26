@@ -1,10 +1,10 @@
+from collections.abc import Iterator
 import os
 from pathlib import Path
-import typing
-import zipfile
+from zipfile import ZipFile, ZipInfo
+from typing import override
 
 from ..schemas.instance import CGSHOP2026Instance
-
 from .instance_base_database import InstanceBaseDatabase
 
 
@@ -26,9 +26,9 @@ class InstanceZipDatabase(InstanceBaseDatabase):
         """
 
         super().__init__(path, enable_cache)
-        self._zipfile = zipfile.ZipFile(path)
+        self._zipfile: ZipFile = ZipFile(path)
 
-    def _find_path(self, name):
+    def _find_path(self, name: str) -> ZipInfo:
         for instance_path in self._zipfile.filelist:
             if self._filename_fits_name(
                 os.path.split(instance_path.filename)[-1], name
@@ -37,7 +37,8 @@ class InstanceZipDatabase(InstanceBaseDatabase):
         msg = f"Did not find a suitable file for {name} in {self._path}"
         raise KeyError(msg)
 
-    def __iter__(self) -> typing.Iterator[CGSHOP2026Instance]:
+    @override
+    def __iter__(self) -> Iterator[CGSHOP2026Instance]:
         """
         Iterate over all instance files.
         :return: Instance objects
@@ -56,6 +57,7 @@ class InstanceZipDatabase(InstanceBaseDatabase):
                         self.read(self._zipfile.open(file_data.filename))
                     )
 
+    @override
     def __getitem__(self, name: str) -> CGSHOP2026Instance:
         """
         Returns the instance of a specific name or throws an KeyError.

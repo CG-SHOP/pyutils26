@@ -1,13 +1,12 @@
-import typing
+from collections.abc import Iterator
 import zipfile
 from pathlib import Path
 
 from ..schemas.instance import CGSHOP2026Instance
-
-
-
 from .instance_file_database import InstanceFileDatabase
 from .instance_zip_database import InstanceZipDatabase
+
+InstanceDB = InstanceFileDatabase | InstanceZipDatabase
 
 
 class InstanceDatabase:
@@ -25,9 +24,11 @@ class InstanceDatabase:
                      NAME.instance.json.
         :param enable_cache: Whether to cache the loaded instances, which can consume significant memory.
         """
-        self._inner_database = self._guess_database_class(path, enable_cache)
+        self._inner_database: InstanceDB = self._guess_database_class(
+            path, enable_cache
+        )
 
-    def _guess_database_class(self, path: str, enable_cache: bool):
+    def _guess_database_class(self, path: str, enable_cache: bool) -> InstanceDB:
         """
         Determines whether the provided path refers to a folder or a zipfile, and returns the appropriate database class.
         :param path: Path to the folder or zipfile.
@@ -46,7 +47,7 @@ class InstanceDatabase:
         msg = f"'{path}' is neither a directory nor a file."
         raise FileNotFoundError(msg)
 
-    def __iter__(self) -> typing.Iterator[CGSHOP2026Instance]:
+    def __iter__(self) -> Iterator[CGSHOP2026Instance]:
         """
         Iterates over all instances in the database.
         :return: An iterable of Cgshop2025Instance objects.
