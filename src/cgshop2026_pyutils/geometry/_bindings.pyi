@@ -2,8 +2,8 @@
 CGAL geometry bindings for CG:SHOP 2026
 """
 
-from typing import overload, Sequence, Self, override
-
+from typing import overload, Sequence
+from typing_extensions import Self, override
 class FieldNumber:
     """A container for exact numbers in CGAL."""
 

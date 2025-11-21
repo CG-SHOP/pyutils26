@@ -4,9 +4,19 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+    # Only run on PRs from the same repository (not forks)
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   build:
+    # Skip expensive tests for PRs from forks (unless manually triggered)
+    if:
+      github.event.pull_request.head.repo.full_name == github.repository ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       matrix:

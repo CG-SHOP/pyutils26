@@ -2,7 +2,12 @@ from collections.abc import Iterator
 import os
 from pathlib import Path
 from zipfile import ZipFile, ZipInfo
-from typing import override
+import sys
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 from ..schemas.instance import CGSHOP2026Instance
 from .instance_base_database import InstanceBaseDatabase
