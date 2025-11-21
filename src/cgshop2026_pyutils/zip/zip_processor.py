@@ -3,9 +3,16 @@ This file contains the ZipSolutionIterator which can read a zip and return all s
 in it. It is designed to be robust and include basic security features.
 """
 
+import sys
 from os import PathLike
 from collections.abc import Iterator
-from typing import BinaryIO, Any, Sequence, override
+from typing import BinaryIO, Any, Sequence
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
+
 from zipfile import BadZipFile, ZipFile
 
 from pydantic import ValidationError
