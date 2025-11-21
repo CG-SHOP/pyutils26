@@ -14,8 +14,7 @@ static void print_arrangement_vertices(const Arrangement_2 &arrangement) {
   size_t vertex_idx = 0;
   for (auto v_it = arrangement.vertices_begin();
        v_it != arrangement.vertices_end(); ++v_it, ++vertex_idx) {
-    fmt::print("  Vertex {}: {}\n", vertex_idx,
-               point_to_string(v_it->point()));
+    fmt::print("  Vertex {}: {}\n", vertex_idx, point_to_string(v_it->point()));
   }
 }
 
@@ -48,10 +47,8 @@ build_point_index_map(const std::vector<Point> &points, bool verbose) {
 
 bool insert_edges_into_arrangement(
     const std::vector<Point> &points,
-    const std::vector<std::tuple<int, int>> &edges,
-    Arrangement_2 &arrangement,
-    PointLocation &point_location,
-    bool verbose) {
+    const std::vector<std::tuple<int, int>> &edges, Arrangement_2 &arrangement,
+    PointLocation &point_location, bool verbose) {
 
   if (verbose)
     fmt::print("Inserting {} edges into arrangement.\n", edges.size());
@@ -90,11 +87,10 @@ bool insert_edges_into_arrangement(
   return true;
 }
 
-void add_convex_hull_to_arrangement(
-    const std::vector<Point> &points,
-    Arrangement_2 &arrangement,
-    PointLocation &point_location,
-    bool verbose) {
+void add_convex_hull_to_arrangement(const std::vector<Point> &points,
+                                    Arrangement_2 &arrangement,
+                                    PointLocation &point_location,
+                                    bool verbose) {
 
   std::vector<Point> hull;
   hull.reserve(points.size()); // Reserve to avoid reallocations
@@ -119,11 +115,9 @@ void add_convex_hull_to_arrangement(
   }
 }
 
-bool validate_vertex_count(
-    const Arrangement_2 &arrangement,
-    size_t expected_count,
-    const std::vector<Point> &points,
-    bool verbose) {
+bool validate_vertex_count(const Arrangement_2 &arrangement,
+                           size_t expected_count,
+                           const std::vector<Point> &points, bool verbose) {
 
   const size_t actual_count = arrangement.number_of_vertices();
 
@@ -179,7 +173,8 @@ bool validate_all_faces_triangular(
     // Walk face boundary once and collect both Point vertices and indices
     std::vector<Point> face_vertices;
     std::vector<int> vertex_indices;
-    face_vertices.reserve(4); // Most will be 3, reserve 4 to handle non-triangular
+    face_vertices.reserve(
+        4); // Most will be 3, reserve 4 to handle non-triangular
     vertex_indices.reserve(3);
 
     Halfedge_const_handle e = fit->outer_ccb();
@@ -193,8 +188,9 @@ bool validate_all_faces_triangular(
       auto it = idx_of.find(p);
       if (it == idx_of.end()) {
         if (verbose)
-          fmt::print("ERROR: Face vertex {} not found in original points list.\n",
-                     point_to_string(p));
+          fmt::print(
+              "ERROR: Face vertex {} not found in original points list.\n",
+              point_to_string(p));
         return false;
       }
       vertex_indices.push_back(it->second);
@@ -207,8 +203,8 @@ bool validate_all_faces_triangular(
     // Check if face is a triangle
     if (edge_count != 3) {
       if (verbose) {
-        fmt::print("ERROR: Face {} has {} edges (expected 3)\n",
-                   face_count, edge_count);
+        fmt::print("ERROR: Face {} has {} edges (expected 3)\n", face_count,
+                   edge_count);
         fmt::print("    Vertices: ");
         for (size_t v = 0; v < face_vertices.size(); ++v) {
           fmt::print("{}{}", point_to_string(face_vertices[v]),
@@ -221,8 +217,8 @@ bool validate_all_faces_triangular(
     triangular_faces++;
 
     if (verbose)
-      fmt::print("  Face {}: Triangle with vertices: {}, {}, {}\n",
-                 face_count, point_to_string(face_vertices[0]),
+      fmt::print("  Face {}: Triangle with vertices: {}, {}, {}\n", face_count,
+                 point_to_string(face_vertices[0]),
                  point_to_string(face_vertices[1]),
                  point_to_string(face_vertices[2]));
 
@@ -233,15 +229,16 @@ bool validate_all_faces_triangular(
   }
 
   if (verbose)
-    fmt::print("  Total bounded faces: {}, Triangular: {}\n",
-               face_count - 1, triangular_faces);
+    fmt::print("  Total bounded faces: {}, Triangular: {}\n", face_count - 1,
+               triangular_faces);
 
   return true;
 }
 
 bool validate_input_edges_present(
     const std::vector<std::tuple<int, int>> &edges,
-    const std::unordered_set<std::tuple<int, int>, TupleHash> &edges_in_arrangement,
+    const std::unordered_set<std::tuple<int, int>, TupleHash>
+        &edges_in_arrangement,
     bool verbose) {
 
   for (const auto &[i, j] : edges) {
@@ -251,8 +248,9 @@ bool validate_input_edges_present(
 
     if (!found) {
       if (verbose)
-        fmt::print("ERROR: Edge ({}, {}) from input not found in arrangement.\n",
-                   i, j);
+        fmt::print(
+            "ERROR: Edge ({}, {}) from input not found in arrangement.\n", i,
+            j);
       return false;
     }
   }

@@ -31,7 +31,7 @@ bool is_triangulation(const std::vector<Point> &points,
  * sorted.
  */
 std::vector<std::tuple<int, int, int>>
-compute_triangles(const std::vector<Point>& points,
-                  const std::vector<std::tuple<int, int>>& edges);
+compute_triangles(const std::vector<Point> &points,
+                  const std::vector<std::tuple<int, int>> &edges);
 
 } // namespace cgshop2026

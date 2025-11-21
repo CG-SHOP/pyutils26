@@ -1,8 +1,8 @@
 #include "cgal_utils.h"
-#include <CGAL/Exact_rational.h>
 #include <CGAL/Exact_integer.h>
-#include <fmt/core.h>
+#include <CGAL/Exact_rational.h>
 #include <algorithm>
+#include <fmt/core.h>
 #include <sstream>
 #include <stdexcept>
 
@@ -135,13 +135,15 @@ Kernel::FT str_to_exact(std::string number) {
 // Comparators and hash functions
 // ============================================================================
 
-bool LessPointXY::operator()(const Point& a, const Point& b) const {
-  if (a.x() < b.x()) return true;
-  if (b.x() < a.x()) return false;
+bool LessPointXY::operator()(const Point &a, const Point &b) const {
+  if (a.x() < b.x())
+    return true;
+  if (b.x() < a.x())
+    return false;
   return a.y() < b.y();
 }
 
-std::size_t TupleHash::operator()(const std::tuple<int, int>& t) const {
+std::size_t TupleHash::operator()(const std::tuple<int, int> &t) const {
   auto h1 = std::hash<int>{}(std::get<0>(t));
   auto h2 = std::hash<int>{}(std::get<1>(t));
   return h1 ^ (h2 << 1);

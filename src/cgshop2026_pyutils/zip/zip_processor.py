@@ -5,7 +5,7 @@ in it. It is designed to be robust and include basic security features.
 
 from os import PathLike
 from collections.abc import Iterator
-from typing import BinaryIO, Any, override
+from typing import BinaryIO, Any, Sequence, override
 from zipfile import BadZipFile, ZipFile
 
 from pydantic import ValidationError
@@ -49,13 +49,13 @@ class ZipSolutionIterator:
         path_or_file: BinaryIO | str | PathLike[str],
         file_size_limit: int = 250 * 1_000_000,  # 250 MB file size limit
         zip_size_limit: int = 2_000 * 1_000_000,  # 2 GB zip size limit
-        solution_extensions: tuple[str, str] = (".solution.json", ".sol.json"),
+        solution_extensions: Sequence[str] = (".solution.json", ".sol.json"),
     ):
         self.path: BinaryIO | str | PathLike[str] = path_or_file
         self._checker: BadZipChecker = BadZipChecker(
             file_size_limit=file_size_limit, zip_size_limit=zip_size_limit
         )
-        self._solution_extensions: tuple[str, str] = solution_extensions
+        self._solution_extensions: Sequence[str] = list(solution_extensions)
 
     def _check_if_bad_zip(self, zip_file: ZipFile):
         """Checks the validity and security of the zip file using the BadZipChecker."""

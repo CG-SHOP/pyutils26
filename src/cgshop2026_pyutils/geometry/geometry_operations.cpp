@@ -1,6 +1,6 @@
 #include "geometry_operations.h"
-#include "triangulation_validation.h"
 #include "cgal_utils.h"
+#include "triangulation_validation.h"
 #include <CGAL/convex_hull_2.h>
 #include <algorithm>
 #include <array>
@@ -55,8 +55,8 @@ bool is_triangulation(const std::vector<Point> &points,
   Arrangement_2 arrangement;
   PointLocation point_location(arrangement);
 
-  if (!insert_edges_into_arrangement(points, edges, arrangement,
-                                      point_location, verbose)) {
+  if (!insert_edges_into_arrangement(points, edges, arrangement, point_location,
+                                     verbose)) {
     return false;
   }
 
@@ -73,8 +73,8 @@ bool is_triangulation(const std::vector<Point> &points,
   std::unordered_set<std::tuple<int, int>, TupleHash> edges_in_arrangement;
   edges_in_arrangement.reserve(3 * points.size());
 
-  if (!validate_all_faces_triangular(arrangement, idx_of,
-                                       edges_in_arrangement, verbose)) {
+  if (!validate_all_faces_triangular(arrangement, idx_of, edges_in_arrangement,
+                                     verbose)) {
     return false;
   }
 
@@ -98,18 +98,18 @@ bool is_triangulation(const std::vector<Point> &points,
 /**
  * Build arrangement from points and edges, including convex hull.
  */
-static void build_arrangement_for_triangles(
-    const std::vector<Point> &points,
-    const std::vector<std::tuple<int, int>> &edges,
-    Arrangement_2 &arrangement,
-    PointLocation &point_location) {
+static void
+build_arrangement_for_triangles(const std::vector<Point> &points,
+                                const std::vector<std::tuple<int, int>> &edges,
+                                Arrangement_2 &arrangement,
+                                PointLocation &point_location) {
 
   // Insert input edges
   for (const auto &edge : edges) {
     const int i = std::get<0>(edge);
     const int j = std::get<1>(edge);
-    if (i < 0 || i >= static_cast<int>(points.size()) ||
-        j < 0 || j >= static_cast<int>(points.size())) {
+    if (i < 0 || i >= static_cast<int>(points.size()) || j < 0 ||
+        j >= static_cast<int>(points.size())) {
       throw std::runtime_error("Edge indices are out of bounds.");
     }
     const Segment2 seg(points[i], points[j]);
@@ -133,15 +133,16 @@ static void build_arrangement_for_triangles(
  * Expects that all bounded faces are triangles and will throw if not.
  */
 static std::vector<std::tuple<int, int, int>>
-extract_triangular_faces(
-    const Arrangement_2 &arrangement,
-    const std::map<Point, int, LessPointXY> &idx_of) {
+extract_triangular_faces(const Arrangement_2 &arrangement,
+                         const std::map<Point, int, LessPointXY> &idx_of) {
 
   std::vector<std::tuple<int, int, int>> triangles;
   triangles.reserve(arrangement.number_of_faces());
 
-  for (auto fit = arrangement.faces_begin(); fit != arrangement.faces_end(); ++fit) {
-    if (fit->is_unbounded()) continue;
+  for (auto fit = arrangement.faces_begin(); fit != arrangement.faces_end();
+       ++fit) {
+    if (fit->is_unbounded())
+      continue;
 
     // Walk the boundary and collect vertex indices
     std::array<int, 3> idxs;
@@ -151,15 +152,19 @@ extract_triangular_faces(
     Halfedge_const_handle start = e;
 
     do {
-      if (deg > 3) {throw std::runtime_error("Bound face is not triangular.");}; // Early out: not a triangle
+      if (deg > 3) {
+        throw std::runtime_error("Bound face is not triangular.");
+      }; // Early out: not a triangle
 
       const Point &pv = e->source()->point();
       auto it = idx_of.find(pv);
       if (it == idx_of.end()) {
         // Vertex not in original points (likely intersection) - skip face
-        throw std::runtime_error("Face vertex not found in original points list.");
+        throw std::runtime_error(
+            "Face vertex not found in original points list.");
       }
-      if (deg < 3) idxs[deg] = it->second;
+      if (deg < 3)
+        idxs[deg] = it->second;
       ++deg;
 
       e = e->next();
@@ -212,7 +217,8 @@ compute_triangles(const std::vector<Point> &points,
   triangles.erase(std::unique(triangles.begin(), triangles.end()),
                   triangles.end());
   if (triangles.size() != num_triangles) {
-    throw std::runtime_error("Duplicate triangles found after extraction. This should not happen.");
+    throw std::runtime_error(
+        "Duplicate triangles found after extraction. This should not happen.");
   }
 
   return triangles;
