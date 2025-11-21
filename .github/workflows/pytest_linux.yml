@@ -14,7 +14,9 @@ on:
 jobs:
   build:
     # Skip expensive tests for PRs from forks (unless manually triggered)
-    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if:
+      github.event.pull_request.head.repo.full_name == github.repository ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       matrix:

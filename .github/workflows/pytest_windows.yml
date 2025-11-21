@@ -11,7 +11,9 @@ on:
 jobs:
   build:
     # Skip expensive tests for PRs from forks
-    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'workflow_dispatch'
+    if:
+      github.event.pull_request.head.repo.full_name == github.repository ||
+      github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
         python-version: ["3.10"]
