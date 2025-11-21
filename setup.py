@@ -30,6 +30,7 @@ setup(  # https://scikit-build.readthedocs.io/en/latest/usage.html#setup-options
         "chardet>=4.0.0",
         "networkx>=2.0.0",
         "pydantic>=2.0.0",
+        "typing_extensions>=4.0.0; python_version<'3.12'",
     ],
     conan_requirements=["fmt/[>=10.0.0]", "cgal/[>=6.0]"],  # C++ Dependencies
     conan_profile_settings={"compiler.cppstd": 17},
